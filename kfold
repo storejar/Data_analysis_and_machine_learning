@@ -6,3 +6,4 @@ msa = model_selection.cross_val_score(model, dm, z1, cv=kfold, scoring='neg_mean
 r2 = model_selection.cross_val_score(model, dm, z1, cv=kfold, scoring='r2')
 print(np.absolute(msa.mean()))
 print(r2.mean())
+#
