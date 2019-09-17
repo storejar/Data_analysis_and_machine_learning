@@ -1,0 +1,8 @@
+from sklearn import model_selection
+from sklearn.linear_model import LinearRegression
+kfold = model_selection.KFold(n_splits=5)
+model = LinearRegression()
+msa = model_selection.cross_val_score(model, dm, z1, cv=kfold, scoring='neg_mean_squared_error')
+r2 = model_selection.cross_val_score(model, dm, z1, cv=kfold, scoring='r2')
+print(np.absolute(msa.mean()))
+print(r2.mean())
