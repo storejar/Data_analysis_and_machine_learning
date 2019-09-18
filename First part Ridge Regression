@@ -52,3 +52,32 @@ print(c[0])
 #print(c[1])
 print(c[2])
 print(c[3])
+
+def fold_degree_r(x,y,z,k):
+    lamdas = [0, 0.5, 1, 1.5, 2, 2.5]
+    error = np.zeros(len(lamdas))
+    bias = np.zeros(len(lamdas))
+    variance = np.zeros(len(lamdas))
+    polylamda = np.zeros(len(lamdas))
+    for lamda in lamdas: 
+        lamda_fold = k_fold(k, x, y, z, 5, skl.Ridge(alpha=lamda))
+        error_ = lamda_fold[0]
+        bias_ = lamda_fold[2]
+        #print(bias_)
+        variance_ = lamda_fold[3]
+       # print('AAA')
+        #print(lamdas.index(lamda))
+        polylamda[lamdas.index(lamda)] = lamda
+        error[lamdas.index(lamda)] = error_
+        bias[lamdas.index(lamda)] = bias_
+        variance[lamdas.index(lamda)] = variance_
+    return (polylamda, error, bias, variance)
+
+d = fold_degree_r(x, y, z, 5)
+#print(b[2])
+
+plt.plot(d[0], d[1], label='Error')
+plt.plot(d[0], d[2], label='bias')
+plt.plot(d[0], d[3], label='Variance')
+plt.legend()
+plt.show()
