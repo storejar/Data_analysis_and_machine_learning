@@ -1,0 +1,30 @@
+# part c
+
+maxdegree = 15
+
+def fold_degree(maxdegree,x,y,z,k):
+    error = np.zeros(maxdegree)
+    bias = np.zeros(maxdegree)
+    variance = np.zeros(maxdegree)
+    polydegree = np.zeros(maxdegree)
+    for degree in range(maxdegree):
+        #z_pred = np.empty((2000, k))
+        degree_fold = k_fold(k, x, y, z, degree)
+        error_ = degree_fold[0]
+        bias_ = degree_fold[2]
+        variance_ = degree_fold[3]
+        polydegree[degree] = degree
+        error[degree] = error_
+        bias[degree] = bias_
+        variance[degree] = variance_
+       # print(bias_)
+    return (polydegree, error, bias, variance)
+
+b = fold_degree(maxdegree, x, y, z, 5)
+#print(b[2])
+
+plt.plot(b[0], b[1], label='Error')
+plt.plot(b[0], b[2], label='bias')
+plt.plot(b[0], b[3], label='Variance')
+plt.legend()
+plt.show()
