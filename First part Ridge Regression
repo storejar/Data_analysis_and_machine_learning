@@ -1,0 +1,54 @@
+#part d
+
+lamda = 0.01
+beta_r = np.linalg.inv(X.T.dot(X)+lamda*np.identity(21)).dot(X.T).dot(z_1)
+zridge = X @ beta_r
+
+clf_ridge = skl.Ridge(alpha=lamda).fit(X, z_1)
+zridge1 = clf_ridge.predict(X)
+
+def k_fold_r(k,x,y,z,m):
+    n=len(x)
+    j=np.arange(n)
+    np.random.shuffle(j)
+    n_k=int(n/k)
+    MSE_K = 0
+    R2_K = 0
+    Variance_=0
+    Bias_=0
+    betas = np.zeros((k,int((m+1)*(m+2)/2)))
+    for i in range(k):
+        x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z,j[i*n_k:(i+1)*n_k])
+        X = Design_Matrix_X(x_l,y_l,m)
+        X_test= Design_Matrix_X(x_test,y_test,m)
+        beta1 = skl.Ridge(alpha=lamda).fit(X,z_l)
+        beta = beta1.coef_
+        betas[i] = beta
+        ztilde1= beta1.predict(X_test)
+        MSE_K+=MSE(z_test,ztilde1)
+        R2_K+=R2(z_test,ztilde1)
+        Bias_+=bias(z_test,ztilde1)
+        Variance_+=variance(ztilde1)
+   # print('{} >= {} + {} = {}'.format(MSE_K/k, Bias_/k, Variance_/k, Bias_/k+Variance_/k))
+    error = MSE_K/k
+    bias_ = Bias_/k
+    variance_ = Variance_/k
+    return (error, R2_K/k, bias_, variance_, np.std(betas, axis = 0), np.mean(betas, axis = 0))
+
+M = np.linalg.inv(X.T.dot(X)+lamda*np.identity(21))
+var_beta_ridge = M.dot(X.T).dot(X).dot(M.T)
+var_b_ridge = np.diag(var_beta_ridge)
+
+l1_Ridge = beta_r - 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
+l2_Ridge = beta_r + 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
+#print(l1_Ridge)
+#print(l2_Ridge)
+
+print(MSE(z_1,zridge))
+print(R2(z_1,zridge))
+
+c = k_fold_r(5,x,y,z,5)
+print(c[0])
+#print(c[1])
+print(c[2])
+print(c[3])
