@@ -1,0 +1,482 @@
+from imageio import imread
+
+import numpy as np
+import random
+import pandas as pd
+import sklearn.linear_model as skl
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import math
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.svm import SVR
+
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+
+# Load the terrain
+terrain1 = imread("SRTM_data_Norway_1.tif")
+print(pd.DataFrame(terrain1))
+# Show the terrain
+plt.figure()
+plt.title("Terrain over Norway 1")
+plt.imshow(terrain1, cmap="gray")
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.show()
+
+## part a
+
+def Design_Matrix_X(x, y, n):
+	N = len(x)
+	l = int((n+1)*(n+2)/2)		
+	X = np.ones((N,l))
+
+	for i in range(1,n+1):
+		q = int((i)*(i+1)/2)
+		for k in range(i+1):
+			X[:,q+k] = x**(i-k) * y**k
+
+	return X
+
+m=5
+
+x = np.arange(0,101,1)
+y = np.arange(0,201,1)
+x, y = np.meshgrid(x,y)
+
+z = terrain1[:201,:101]
+
+z_mean = np.mean(z)
+z_std = np.std(z)
+
+z = (z-z_mean)/z_std
+
+z = z.ravel()
+
+z_1 = z
+
+
+# =============================================================================
+# 
+# z_1=np.ravel(z)+ np.random.random(n) * 0.01
+# 
+# z = terrain1[:201,:101]
+# 
+# #print(pd.DataFrame(z))
+# 
+# z_mean = np.mean(z)
+# z_std = np.std(z)
+# 
+# z = (z-z_mean)/z_std
+# 
+# z = z.ravel()
+# 
+# 
+# n = int(len(z))
+# z_1 = z +0.01*np.random.randn(n)
+# =============================================================================
+
+X= Design_Matrix_X(x.ravel(),y.ravel(),n=m)
+DesignMatrix = pd.DataFrame(X)
+print(DesignMatrix)
+
+a = np.linalg.matrix_rank(X)
+print(a)
+
+def SVDinv(A):
+    U, s, VT = np.linalg.svd(A)
+   # print(U)
+   # print(s)
+   # print(VT)
+    D = np.zeros((len(U),len(VT)))
+    for i in range(0,len(VT)):
+        D[i,i]=s[i]
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+def SVDinv2(A):
+    U, s, VT = np.linalg.svd(A)
+    S = np.zeros((A.shape[0], A.shape[1]))
+    S[:A.shape[0], :A.shape[0]] = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(S)
+    return np.matmul(V,np.matmul(invD,UT))
+
+M = SVDinv2(X)
+print(M)
+
+# =============================================================================
+# beta = I.dot(X.T).dot(z_1)
+# ztilde = X @ beta
+# print(z_1.shape)
+# a = SVDinv(X)
+# ztilde_bis = (a).dot(np.transpose(a)).dot(z_1)
+# print(ztilde_bis)
+# print(z_1)
+# #print(beta)
+# beta1 = skl.LinearRegression().fit(X,z_1) #function .fit fits linear models
+# ztilde1 = beta1.predict(X)
+# print(ztilde1)
+# 
+# # =============================================================================
+# # print(ztilde)
+# # print('--')
+# # print(ztilde1)
+# # =============================================================================
+# 
+# var_beta_OLS = 1*I
+# var = pd.DataFrame(var_beta_OLS)
+# var_diag=np.diag(var_beta_OLS)
+# print(var_diag)
+# # =============================================================================
+# # var_beta_OLS1 = np.cov(beta)
+# # var_diag1 = np.diag(var_beta_OLS1)
+# # print(var_diag1)
+# # =============================================================================
+# 
+# 
+# l1_OLS = beta - 1.96*np.sqrt(var_diag)/(X.shape[0])
+# l2_OLS = beta + 1.96*np.sqrt(var_diag)/(X.shape[0])
+# #print(l1_OLS)
+# #print(l2_OLS)
+# 
+# def MSE (ydata, ymodel):
+#     n = np.size(ymodel)
+#     y = (ydata - ymodel).T@(ydata - ymodel)
+#     y = y/n
+#     return y
+# 
+# def R2 (ydata, ymodel):
+#    return 1-((ydata-ymodel).T@(ydata-ymodel))/((ydata-np.mean(ydata)).T@(ydata-np.mean(ydata)))
+# 
+# 
+# print(MSE(z_1,ztilde1))
+# print(R2(z_1,ztilde1))
+# 
+# 
+# print("Mean squared error: %.2f" % mean_squared_error(z_1, ztilde1))
+# print('Variance score: %.2f' % r2_score(z_1, ztilde1))
+# 
+# ## part b
+# 
+# def train_test_splitdata(x_,y_,z_,i):
+# 
+# 	x_learn=np.delete(x_,i)
+# 	y_learn=np.delete(y_,i)
+# 	z_learn=np.delete(z_,i)
+# 	x_test=np.take(x_,i)
+# 	y_test=np.take(y_,i)
+# 	z_test=np.take(z_,i)
+# 
+# 	return x_learn,y_learn,z_learn,x_test,y_test,z_test
+# 
+# 
+# def k_fold(k,x,y,z,m,model):
+#     n=len(z)
+#     j=np.arange(n)
+#     np.random.shuffle(j)
+#     n_k=int(n/k)
+#     MSE_K_t = 0
+#     R2_K_t = 0
+#     betas = np.zeros((k,int((m+1)*(m+2)/2)))
+#     for i in range(k):
+#         x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z.reshape(201,101),j[i*n_k:(i+1)*n_k])
+#         X = Design_Matrix_X(x_l.ravel(),y_l.ravel(),m)
+#         X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),m)
+#         #print(pd.DataFrame(X))
+#         #print(pd.DataFrame(X_test))
+#         beta1 = model.fit(X, z_l.ravel())
+#         #print(beta[0])
+#         beta = beta1.coef_
+#         betas[i] = beta
+#         ztilde1 = beta1.predict(X_test)
+#         #print(ztilde1)
+#         MSE_K_t+=MSE(z_test, ztilde1)
+#         R2_K_t+=R2(z_test, ztilde1)
+#        # Bias_t+=bias(z_test,ztilde1)
+#        # Variance_t+=variance(ztilde1)
+# # check if the values computed with our function and using the methods in lines 161-163 are the same
+#     #error_t = MSE_K_t/k
+#     #bias_t = Bias_t/k
+#     #variance_t = Variance_t/k
+#     R2_t = R2_K_t/k
+#     MSE_t = MSE_K_t/k
+#     #print(error_t)
+#     #print(bias_t)
+#     #print(variance_t)
+#     
+#     return (MSE_t, R2_t, np.std(betas, axis = 0), np.mean(betas, axis = 0))
+# 
+# a=k_fold(5,x,y,z_1,5,LinearRegression())
+# print(a[0])
+# print(a[1])
+# 
+# from sklearn.utils import resample
+# 
+# n_boostraps = 100
+# model = LinearRegression(fit_intercept=False)
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x.ravel(), y.ravel(), z, test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((len(z_test),100))
+# for i in range(100):
+#     z_test1[:,i]=z_test
+# z_pred = np.empty((len(z_test),n_boostraps))
+# for i in range(n_boostraps):
+#     x_, y_, z_ = resample(x_train, y_train, z_train)
+#     X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),5)
+#     X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),5)  
+#     z_pred[:,i] = model.fit(X_train, z_).predict(X_test).ravel()
+# error_test = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+# R_2 = np.mean(R2(z_test1,z_pred))
+# print(error_test)
+# print(R_2)
+# 
+# ## part c
+# 
+# from sklearn.utils import resample
+# 
+# n_boostraps = 10
+# 
+# maxdegree = 10
+# 
+# error_test = np.zeros(maxdegree)
+# bias___ = np.zeros(maxdegree)
+# variance___ = np.zeros(maxdegree)
+# polydegree = np.zeros(maxdegree)
+# error_train = np.zeros(maxdegree)
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(201,101), test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((len(z_test.ravel()),10))
+# z_train1 = np.zeros((len(z_train.ravel()),10))
+# for i in range(10):
+#     z_test1[:,i]=z_test.ravel()
+# 
+# 
+# 
+# for degree in range(maxdegree):
+#     model = LinearRegression(fit_intercept=False)
+#     z_pred = np.empty((len(z_test.ravel()),n_boostraps))
+#     z_pred_train = np.empty((len(z_train.ravel()),n_boostraps))
+#     for i in range(n_boostraps):
+#         x_, y_, z_ = resample(x_train, y_train, z_train)
+#         z_train1[:,i] = z_.ravel()
+#         X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),degree)
+#         X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),degree)  
+#         z_pred[:, i] = model.fit(X_train, z_.ravel()).predict(X_test).ravel()
+#         z_pred_train[:, i] = model.fit(X_train, z_.ravel()).predict(X_train).ravel()
+#     
+#     polydegree[degree] = degree
+#     error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+#     bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+#     variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+#     error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+#     #print(degree)
+#    # print(error_test)
+#     #print(bias___)
+# #print(variance___)
+#    # print(bias___+variance___)
+#     
+# 
+# plt.plot(polydegree, error_test, label='Error')
+# plt.plot(polydegree, bias___, label='bias')
+# plt.plot(polydegree, variance___, label='Variance')
+# plt.legend()
+# plt.show()
+# 
+# plt.plot(polydegree, error_test, label='Error test')
+# plt.plot(polydegree, error_train, label='error training')
+# plt.legend()
+# plt.show()
+# 
+# ## part d
+# 
+# lamdas = [0.00001, 0.0001, 0.001, 0.01, 0.1, 1]
+# maxdegree = 10
+# l_lamda = []
+# min_lamda_degree_r = dict()
+# 
+# for degree in range(maxdegree):
+#     l_degree = dict()
+#     print(degree)
+#     for lamda in lamdas: 
+#         m=degree
+#         X = Design_Matrix_X(x.ravel(),y.ravel(),n=m)
+#         beta_r = SVDinv(X.T.dot(X)+lamda*np.identity(int((m+1)*(m+2)/2))).dot(X.T).dot(z_1)
+#         zridge = X @ beta_r
+#        # print("Beta parameters") 
+#        # print(beta_r)
+#     #print(zridge)
+#     
+#         clf_ridge = skl.Ridge(alpha=lamda).fit(X, z_1)
+#         zridge1 = clf_ridge.predict(X)
+#     #print(zridge1)
+#     
+#         M = SVDinv(X.T.dot(X)+lamda*np.identity(int((m+1)*(m+2)/2)))
+#         var_beta_ridge = M.dot(X.T).dot(X).dot(M.T)
+#         var_b_ridge = np.diag(var_beta_ridge)
+#        # print("Variance of betas")
+#        # print(var_b_ridge)
+#     
+#         l1_Ridge = beta_r - 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
+#         l2_Ridge = beta_r + 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
+#     #print(l1_Ridge)
+#     #print(l2_Ridge)
+#         l_degree[str(lamda)] = MSE(z_1,zridge)
+#        # print(lamda)
+#        # print(MSE(z_1,zridge))
+#        # print(R2(z_1,zridge))
+#     
+#     a = list(l_degree.values())
+#     a_min = min(a)
+#     min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
+#     if min_lamda not in l_lamda:
+#         l_lamda.append(min_lamda)
+#     min_lamda_degree_r[str(degree)] = min_lamda
+#     print(min_lamda)
+# 
+# print(min_lamda_degree_r)
+# 
+# X_5 = Design_Matrix_X(x.ravel(),y.ravel(),n=5)
+# beta_r_5 = SVDinv(X_5.T.dot(X_5)+1*np.identity(21)).dot(X_5.T).dot(z_1)
+# zridge_5 = X_5 @ beta_r_5
+# print(MSE(z_1,zridge_5))
+# print(R2(z_1,zridge_5))
+# 
+# 
+# n_boostraps = 10
+# error_test = np.zeros(maxdegree)
+# bias___ = np.zeros(maxdegree)
+# variance___ = np.zeros(maxdegree)
+# polydegree = np.zeros(maxdegree)
+# error_train = np.zeros(maxdegree)
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(201,101), test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((len(z_test.ravel()),10))
+# z_train1 = np.zeros((len(z_train.ravel()),10))
+# for i in range(10):
+#     z_test1[:,i]=z_test.ravel()
+#     
+# #I chose a specific lamda
+# for degree in range(maxdegree):
+#     model = skl.Ridge(alpha=0.001)
+#     z_pred = np.empty((len(z_test.ravel()),n_boostraps))
+#     z_pred_train = np.empty((len(z_train.ravel()),n_boostraps))
+#     for i in range(n_boostraps):
+#         x_, y_, z_ = resample(x_train, y_train, z_train)
+#         z_train1[:,i] = z_.ravel()
+#         X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),degree)
+#         X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),degree)  
+#         z_pred[:, i] = model.fit(X_train, z_.ravel()).predict(X_test).ravel()
+#         z_pred_train[:, i] = model.fit(X_train, z_.ravel()).predict(X_train).ravel()
+#         
+#     polydegree[degree] = degree
+#     error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+#     bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+#     variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+#     error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+#         #print(degree)
+#         #print(error_test)
+#         #print(bias___)
+#         #print(variance___)
+#         #print(bias___+variance___)
+#         
+#     
+# plt.plot(polydegree, error_test, label='Error')
+# plt.plot(polydegree, bias___, label='bias')
+# plt.plot(polydegree, variance___, label='Variance')
+# plt.legend()
+# plt.show()
+#     
+# plt.plot(polydegree, error_test, label='Error test')
+# plt.plot(polydegree, error_train, label='error training')
+# plt.legend()
+# plt.show()
+# 
+# 
+# 
+# ## part e 
+#     
+# lamdas = [0.0001, 0.001, 0.01, 0.1, 1]
+# maxdegree = 10
+# min_lamda_degree_l = dict()
+# 
+# for degree in range(maxdegree):
+#     l_degree = dict()
+#     print(degree)
+#     for lamda in lamdas: 
+#         m=degree
+#         X = Design_Matrix_X(x.ravel(),y.ravel(),n=m)
+#         model_lasso = skl.Lasso(alpha=lamda).fit(X, z_1)
+#         betas = model_lasso.coef_
+#         zlasso = model_lasso.predict(X)
+#         
+#         l_degree[str(lamda)] = MSE(z_1,zlasso)
+#        # print(lamda)
+#        # print(MSE(z_1,zridge))
+#        # print(R2(z_1,zridge))
+#     
+#     a = list(l_degree.values())
+#     a_min = min(a)
+#     min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
+#     min_lamda_degree_l[str(degree)] = min_lamda
+#     print(min_lamda)
+# 
+# print(min_lamda_degree_l)
+#     
+# X_5l = Design_Matrix_X(x.ravel(),y.ravel(),n=5)
+# beta_l_5 = skl.Lasso(alpha=0.0001).fit(X_5l, z_1)
+# zlasso_5 = beta_l_5.predict(X_5l)
+# print(MSE(z_1,zlasso_5))
+# print(R2(z_1,zlasso_5))
+# 
+# n_boostraps = 10
+# error_test = np.zeros(maxdegree)
+# bias___ = np.zeros(maxdegree)
+# variance___ = np.zeros(maxdegree)
+# polydegree = np.zeros(maxdegree)
+# error_train = np.zeros(maxdegree)
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(201,101), test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((len(z_test.ravel()),10))
+# z_train1 = np.zeros((len(z_train.ravel()),10))
+# for i in range(10):
+#     z_test1[:,i]=z_test.ravel()
+#     
+# #I chose a specific lamda
+# for degree in range(maxdegree):
+#     model = skl.Lasso(alpha=0.01)
+#     z_pred = np.empty((len(z_test.ravel()),n_boostraps))
+#     z_pred_train = np.empty((len(z_train.ravel()),n_boostraps))
+#     for i in range(n_boostraps):
+#         x_, y_, z_ = resample(x_train, y_train, z_train)
+#         z_train1[:,i] = z_.ravel()
+#         X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),degree)
+#         X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),degree)  
+#         z_pred[:, i] = model.fit(X_train, z_.ravel()).predict(X_test).ravel()
+#         z_pred_train[:, i] = model.fit(X_train, z_.ravel()).predict(X_train).ravel()
+#         
+#     polydegree[degree] = degree
+#     error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+#     bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+#     variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+#     error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+#         #print(degree)
+#         #print(error_test)
+#         #print(bias___)
+#         #print(variance___)
+#         #print(bias___+variance___)
+#         
+#     
+# plt.plot(polydegree, error_test, label='Error')
+# plt.plot(polydegree, bias___, label='bias')
+# plt.plot(polydegree, variance___, label='Variance')
+# plt.legend()
+# plt.show()
+#     
+# plt.plot(polydegree, error_test, label='Error test')
+# plt.plot(polydegree, error_train, label='error training')
+# plt.legend()
+# plt.show()
+# 
+# =============================================================================
