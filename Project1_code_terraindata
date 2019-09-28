@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 20 17:38:24 2019
+
+@author: Ary
+"""
+
 from imageio import imread
 
 import numpy as np
@@ -18,6 +26,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
+fig = plt.figure(figsize=(12,9))
+plt.rc('font', size=25)
 
 # Load the terrain
 terrain1 = imread("SRTM_data_Norway_1.tif")
@@ -270,11 +280,15 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
+fig.savefig('Output/BVD_OLS.png')
+
 
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
+fig.savefig('Output/Error_train_test_OLS.png')
+
 
 ## part d
 
@@ -373,11 +387,13 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
+fig.savefig('Output/BVT_Ridge.png')
     
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
+fig.savefig('Output/Error_train_test_Ridge.png')
 
 
 
@@ -458,9 +474,10 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
+fig.savefig('Output/BVT_Lasso.png')
     
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
-
+fig.savefig('Output/Error_train_test_Lasso.png')
