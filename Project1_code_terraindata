@@ -9,22 +9,13 @@ Created on Fri Sep 20 17:38:24 2019
 from imageio import imread
 
 import numpy as np
-import random
 import pandas as pd
 import sklearn.linear_model as skl
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import math
-from sklearn.model_selection import KFold
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.svm import SVR
 
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 fig = plt.figure(figsize=(12,9))
 plt.rc('font', size=25)
@@ -57,7 +48,7 @@ def Design_Matrix_X(x, y, n):
 m=5
 
 x = np.arange(0,1801,1)
-y = np.arange(0,3601,1)
+y = np.arange(3601,0,-1)
 x, y = np.meshgrid(x,y)
 
 #print(len(x.ravel()), len(y.ravel()))
@@ -119,9 +110,9 @@ ztilde1 = beta1.predict(X)
 # =============================================================================
 
 # =============================================================================
-# print(ztilde)
-# print('--')
-# print(ztilde1)
+print(ztilde)
+print('--')
+print(ztilde1)
 # =============================================================================
 
 var_beta_OLS = 1*np.linalg.inv(X.T.dot(X))
@@ -137,6 +128,7 @@ var_diag=np.diag(var_beta_OLS)
 #print(beta)
 l1_OLS = beta - 1.96*np.sqrt((var_diag)/(X.shape[0]))
 l2_OLS = beta + 1.96*np.sqrt((var_diag)/(X.shape[0]))
+print(pd.concat([pd.DataFrame(l1_OLS), pd.DataFrame(l2_OLS)], axis=1))
 #print(l1_OLS)
 #print(l2_OLS)
 
@@ -150,8 +142,8 @@ def R2 (ydata, ymodel):
    return 1-((ydata-ymodel).T@(ydata-ymodel))/((ydata-np.mean(ydata)).T@(ydata-np.mean(ydata)))
 
 
-print(MSE(z_1,ztilde1))
-print(R2(z_1,ztilde1))
+print(MSE(z_1,ztilde))
+print(R2(z_1,ztilde))
 
 
 print("Mean squared error: %.2f" % mean_squared_error(z_1, ztilde1))
@@ -293,7 +285,7 @@ fig.savefig('Output/Error_train_test_OLS.png')
 ## part d
 
 lamdas = [0.00001, 0.0001, 0.001, 0.01, 0.1, 1]
-maxdegree = 10
+maxdegree = 20
 l_lamda = []
 min_lamda_degree_r = dict()
 
@@ -351,7 +343,7 @@ bias___ = np.zeros(maxdegree)
 variance___ = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 error_train = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(201,101), test_size=0.2, shuffle=True)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(3601,1801), test_size=0.2, shuffle=True)
 z_test1 = np.zeros((len(z_test.ravel()),10))
 z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
@@ -481,3 +473,5 @@ plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
 fig.savefig('Output/Error_train_test_Lasso.png')
+
+
