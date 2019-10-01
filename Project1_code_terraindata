@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 20 17:38:24 2019
-
 @author: Ary
 """
 
 from imageio import imread
+
+import os
 
 import numpy as np
 import pandas as pd
@@ -17,10 +18,14 @@ from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 
-# =============================================================================
-# fig = plt.figure(figsize=(12,9))
-# plt.rc('font', size=25)
-# =============================================================================
+# create Output folder for figures
+FIGURE_ID = "Output"
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+# set font in figures
+plt.rc('font', size=25)
 
 # Load the terrain
 terrain1 = imread("SRTM_data_Norway_1.tif")
@@ -283,19 +288,29 @@ for degree in range(maxdegree):
    # print(bias___+variance___)
     
 
+fig1=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error')
 plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Bias Variance Tradeoff OLS')
 plt.legend()
 plt.show()
-#fig.savefig('Output/BVD_OLS.png')
+fig1.savefig(FIGURE_ID+'/BVD_OLS.png')
+plt.close()
 
 
+fig2=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Error_train_test_OLS')
 plt.legend()
 plt.show()
-#fig.savefig('Output/Error_train_test_OLS.png')
+fig2.savefig(FIGURE_ID+'/Error_train_test_OLS.png')
+plt.close()
 
 
 ## part d
@@ -390,18 +405,29 @@ for degree in range(maxdegree):
         #print(bias___+variance___)
         
     
+fig3=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error')
 plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Bias Variance Tradeoff Ridge')
 plt.legend()
 plt.show()
-#fig.savefig('Output/BVT_Ridge.png')
+fig3.savefig(FIGURE_ID+'/BVT_Ridge.png')
+plt.close()
     
+
+fig4=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Error_train_test_Ridge')
 plt.legend()
 plt.show()
-#fig.savefig('Output/Error_train_test_Ridge.png')
+fig4.savefig(FIGURE_ID+'/Error_train_test_Ridge.png')
+plt.close()
 
 
 
@@ -477,15 +503,26 @@ for degree in range(maxdegree):
         #print(bias___+variance___)
         
     
+fig5=plt.figure(figsize=(12,9))    
 plt.plot(polydegree, error_test, label='Error')
 plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Bias Variance Tradeoff Lasso')
 plt.legend()
 plt.show()
-#fig.savefig('Output/BVT_Lasso.png')
-    
+fig5.savefig(FIGURE_ID+'/BVT_Lasso.png')
+plt.close()
+
+
+fig6=plt.figure(figsize=(12,9))    
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
+plt.ylabel(r'Error')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Error_train_test_Lasso')
 plt.legend()
 plt.show()
-#fig.savefig('Output/Error_train_test_Lasso.png')
+fig6.savefig(FIGURE_ID+'/Error_train_test_Lasso.png')
+plt.close()
