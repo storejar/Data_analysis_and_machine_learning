@@ -251,7 +251,7 @@ from sklearn.utils import resample
 
 n_boostraps = 10
 
-maxdegree = 10
+maxdegree = 20
 
 error_test = np.zeros(maxdegree)
 bias___ = np.zeros(maxdegree)
@@ -434,7 +434,7 @@ plt.close()
 ## part e 
     
 lamdas = [0.0001, 0.001, 0.01, 0.1, 1]
-maxdegree = 10
+maxdegree = 20
 min_lamda_degree_l = dict()
 
 for degree in range(maxdegree):
