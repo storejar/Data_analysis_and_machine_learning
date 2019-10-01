@@ -380,9 +380,9 @@ z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
     z_test1[:,i]=z_test.ravel()
     
-#I chose a specific lamda
+#I chose a specific lamda, the most common one which is 0.00001.
 for degree in range(maxdegree):
-    model = skl.Ridge(alpha=0.001)
+    model = skl.Ridge(alpha=0.00001)
     z_pred = np.empty((len(z_test.ravel()),n_boostraps))
     z_pred_train = np.empty((len(z_train.ravel()),n_boostraps))
     for i in range(n_boostraps):
@@ -478,9 +478,9 @@ z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
     z_test1[:,i]=z_test.ravel()
     
-#I chose a specific lamda
+#I chose a specific lamda, the most common one which is 1.
 for degree in range(maxdegree):
-    model = skl.Lasso(alpha=0.01)
+    model = skl.Lasso(alpha=1)
     z_pred = np.empty((len(z_test.ravel()),n_boostraps))
     z_pred_train = np.empty((len(z_train.ravel()),n_boostraps))
     for i in range(n_boostraps):
