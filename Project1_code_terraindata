@@ -17,8 +17,10 @@ from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 
-fig = plt.figure(figsize=(12,9))
-plt.rc('font', size=25)
+# =============================================================================
+# fig = plt.figure(figsize=(12,9))
+# plt.rc('font', size=25)
+# =============================================================================
 
 # Load the terrain
 terrain1 = imread("SRTM_data_Norway_1.tif")
@@ -47,8 +49,8 @@ def Design_Matrix_X(x, y, n):
 
 m=5
 
-x = np.arange(0,1801,1)
-y = np.arange(3601,0,-1)
+x = np.arange(0,1801,10)
+y = np.arange(3601,0,-10)
 x, y = np.meshgrid(x,y)
 
 #print(len(x.ravel()), len(y.ravel()))
@@ -59,6 +61,18 @@ z_mean = np.mean(z)
 z_std = np.std(z)
 
 z = (z-z_mean)/z_std
+
+#print(z.shape)
+
+my_cols = list(np.arange(0,1801,10))
+my_rows = list(np.arange(0,3601,10))
+
+#print(my_cols, my_rows)
+
+z = z[my_rows,]
+z = z[:,my_cols]
+
+#print(z.shape)
 
 z = z.ravel()
 
@@ -110,9 +124,11 @@ ztilde1 = beta1.predict(X)
 # =============================================================================
 
 # =============================================================================
-print(ztilde)
-print('--')
-print(ztilde1)
+# =============================================================================
+# print(ztilde)
+# print('--')
+# print(ztilde1)
+# =============================================================================
 # =============================================================================
 
 var_beta_OLS = 1*np.linalg.inv(X.T.dot(X))
@@ -172,7 +188,7 @@ def k_fold(k,x,y,z,m,model):
     R2_K_t = 0
     betas = np.zeros((k,int((m+1)*(m+2)/2)))
     for i in range(k):
-        x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z.reshape(3601,1801),j[i*n_k:(i+1)*n_k])
+        x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z.reshape(361,181),j[i*n_k:(i+1)*n_k])
         X = Design_Matrix_X(x_l.ravel(),y_l.ravel(),m)
         X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),m)
         #print(pd.DataFrame(X))
@@ -203,24 +219,26 @@ a=k_fold(5,x,y,z_1,5,LinearRegression())
 print(a[0])
 print(a[1])
 
-from sklearn.utils import resample
-
-n_boostraps = 100
-model = LinearRegression(fit_intercept=False)
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x.ravel(), y.ravel(), z, test_size=0.2, shuffle=True)
-z_test1 = np.zeros((len(z_test),100))
-for i in range(100):
-    z_test1[:,i]=z_test
-z_pred = np.empty((len(z_test),n_boostraps))
-for i in range(n_boostraps):
-    x_, y_, z_ = resample(x_train, y_train, z_train)
-    X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),5)
-    X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),5)  
-    z_pred[:,i] = model.fit(X_train, z_).predict(X_test).ravel()
-error_test = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
-R_2 = np.mean(R2(z_test1,z_pred))
-print(error_test)
-print(R_2)
+# =============================================================================
+# from sklearn.utils import resample
+# 
+# n_boostraps = 100
+# model = LinearRegression(fit_intercept=False)
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x.ravel(), y.ravel(), z, test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((len(z_test),100))
+# for i in range(100):
+#     z_test1[:,i]=z_test
+# z_pred = np.empty((len(z_test),n_boostraps))
+# for i in range(n_boostraps):
+#     x_, y_, z_ = resample(x_train, y_train, z_train)
+#     X_train = Design_Matrix_X(x_.ravel(),y_.ravel(),5)
+#     X_test= Design_Matrix_X(x_test.ravel(),y_test.ravel(),5)  
+#     z_pred[:,i] = model.fit(X_train, z_).predict(X_test).ravel()
+# error_test = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+# R_2 = np.mean(R2(z_test1,z_pred))
+# print(error_test)
+# print(R_2)
+# =============================================================================
 
 ## part c
 
@@ -235,13 +253,11 @@ bias___ = np.zeros(maxdegree)
 variance___ = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 error_train = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(3601,1801), test_size=0.2, shuffle=True)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(361,181), test_size=0.2, shuffle=True)
 z_test1 = np.zeros((len(z_test.ravel()),10))
 z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
     z_test1[:,i]=z_test.ravel()
-
-
 
 for degree in range(maxdegree):
     model = LinearRegression(fit_intercept=False)
@@ -272,14 +288,14 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
-fig.savefig('Output/BVD_OLS.png')
+#fig.savefig('Output/BVD_OLS.png')
 
 
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
-fig.savefig('Output/Error_train_test_OLS.png')
+#fig.savefig('Output/Error_train_test_OLS.png')
 
 
 ## part d
@@ -331,7 +347,7 @@ for degree in range(maxdegree):
 print(min_lamda_degree_r)
 
 X_5 = Design_Matrix_X(x.ravel(),y.ravel(),n=5)
-beta_r_5 = np.linalg.inv(X_5.T.dot(X_5)+1*np.identity(21)).dot(X_5.T).dot(z_1)
+beta_r_5 = np.linalg.inv(X_5.T.dot(X_5)+0.00001*np.identity(21)).dot(X_5.T).dot(z_1)
 zridge_5 = X_5 @ beta_r_5
 print(MSE(z_1,zridge_5))
 print(R2(z_1,zridge_5))
@@ -343,7 +359,7 @@ bias___ = np.zeros(maxdegree)
 variance___ = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 error_train = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(3601,1801), test_size=0.2, shuffle=True)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(361,181), test_size=0.2, shuffle=True)
 z_test1 = np.zeros((len(z_test.ravel()),10))
 z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
@@ -379,13 +395,13 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
-fig.savefig('Output/BVT_Ridge.png')
+#fig.savefig('Output/BVT_Ridge.png')
     
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
-fig.savefig('Output/Error_train_test_Ridge.png')
+#fig.savefig('Output/Error_train_test_Ridge.png')
 
 
 
@@ -419,7 +435,7 @@ for degree in range(maxdegree):
 print(min_lamda_degree_l)
     
 X_5l = Design_Matrix_X(x.ravel(),y.ravel(),n=5)
-beta_l_5 = skl.Lasso(alpha=0.0001).fit(X_5l, z_1)
+beta_l_5 = skl.Lasso(alpha=1).fit(X_5l, z_1)
 zlasso_5 = beta_l_5.predict(X_5l)
 print(MSE(z_1,zlasso_5))
 print(R2(z_1,zlasso_5))
@@ -430,7 +446,7 @@ bias___ = np.zeros(maxdegree)
 variance___ = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 error_train = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(3601,1801), test_size=0.2, shuffle=True)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z.reshape(361,181), test_size=0.2, shuffle=True)
 z_test1 = np.zeros((len(z_test.ravel()),10))
 z_train1 = np.zeros((len(z_train.ravel()),10))
 for i in range(10):
@@ -466,12 +482,10 @@ plt.plot(polydegree, bias___, label='bias')
 plt.plot(polydegree, variance___, label='Variance')
 plt.legend()
 plt.show()
-fig.savefig('Output/BVT_Lasso.png')
+#fig.savefig('Output/BVT_Lasso.png')
     
 plt.plot(polydegree, error_test, label='Error test')
 plt.plot(polydegree, error_train, label='error training')
 plt.legend()
 plt.show()
-fig.savefig('Output/Error_train_test_Lasso.png')
-
-
+#fig.savefig('Output/Error_train_test_Lasso.png')
