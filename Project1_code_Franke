@@ -320,8 +320,8 @@ for degree in range(maxdegree):
        # print("Variance of betas")
        # print(var_b_ridge)
     
-        l1_Ridge = beta_r - 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
-        l2_Ridge = beta_r + 1.96*np.sqrt(var_b_ridge)/(X.shape[0])
+        l1_Ridge = beta_r - 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
+        l2_Ridge = beta_r + 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
     #print(l1_Ridge)
     #print(l2_Ridge)
         l_degree[str(lamda)] = MSE(z_1,zridge)
