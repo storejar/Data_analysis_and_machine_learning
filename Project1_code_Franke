@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Oct  5 17:23:40 2019
+
+@author: Jarda
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Sep 27 15:06:27 2019
 
 @author: annam
 """
+
+import os
+import math
+
+#library for log scale 2D hist
+from matplotlib.colors import LogNorm
 
 import numpy as np
 import pandas as pd
@@ -12,6 +25,15 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+
+# create Output folder for figures
+FIGURE_ID = "Output"
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+# set font in figures
+plt.rc('font', size=20)
 
 #np.random.seed(2204)
 
@@ -72,10 +94,14 @@ var = pd.DataFrame(var_beta_OLS)
 #print(var)
 var_diag=np.diag(var_beta_OLS)
 print(var_diag)
+print("beta = ", beta)
+
 
 l1_OLS = beta - 1.96*np.sqrt((var_diag)/(X.shape[0]))
 l2_OLS = beta + 1.96*np.sqrt((var_diag)/(X.shape[0]))
 print(pd.concat([pd.DataFrame(l1_OLS),pd.DataFrame(l2_OLS)],axis=1))
+#printout useful for report
+#print(pd.concat([pd.DataFrame(beta),pd.DataFrame((l2_OLS-beta)/beta*100)],axis=1))
 #print(l1_OLS)
 #print(l2_OLS)
 
@@ -294,27 +320,39 @@ for degree in range(maxdegree):
     #print(bias___+variance___)
     
 
+fig1=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error')
-plt.plot(polydegree, bias___, label='bias')
+plt.plot(polydegree, bias___, label='Bias')
 plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
 plt.title(r'Bias Variance Tradeoff OLS')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig1.savefig(FIGURE_ID+'/BVD_OLS.png')
+plt.close()
 
+fig2=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error test')
-plt.plot(polydegree, error_train, label='error training')
+plt.plot(polydegree, error_train, label='Error training')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
-plt.title(r'Error_train_test_OLS')
+plt.title(r'Train Test Error OLS')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig2.savefig(FIGURE_ID+'/Error_train_test_OLS.png')
+plt.close()
 
 #part d
 
 lamdas = [0.00001, 0.0001, 0.001, 0.01, 0.1, 1]
 maxdegree = 20
+#preaprae variables for the 2D hist
+degree_array = list(range(1,maxdegree+1))
+MSE_array = np.zeros((maxdegree,len(lamdas)))
+#
 
 for degree in range(maxdegree):
     l_degree = dict()
@@ -343,7 +381,10 @@ for degree in range(maxdegree):
     #print(l1_Ridge)
     #print(l2_Ridge)
         l_degree[str(lamda)] = MSE(z_1,zridge)
-       # print(lamda)
+        #create array for MSE
+        MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zridge)
+       # print(MSE_array)
+       # print("lamda=",lamda)
        # print(MSE(z_1,zridge))
        # print(R2(z_1,zridge))
     
@@ -352,7 +393,37 @@ for degree in range(maxdegree):
     min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
     print(min_lamda)
     
+   
        # c = k_fold(5,x,y,z,5,skl.Ridge(alpha=lamda))
+       
+       
+print("MSE = ", MSE_array)
+
+fig7=plt.figure(figsize=(12,9))
+#prepare variables for 2D hist
+degree_array1,lamdas1 = np.meshgrid(degree_array,lamdas)
+degree_array1,lamdas1, MSE_array1 = np.ravel(degree_array1),np.flip(np.ravel(lamdas1)), np.ravel(MSE_array.T)
+#cycle for creating edges for the 2D hist based on chosen lambda
+edges=np.zeros(len(lamdas)+1)
+edges[0]=lamdas[0]/10+lamdas[0]/100
+for i in range(1,len(edges)):
+    edges[i]=lamdas[i-1]+lamdas[i-1]/10
+#print(edges)
+
+# choose the best looking plot
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,20))
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,(5,15)))
+h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1,bins=(edges,20),norm=LogNorm(vmin=0.0001, vmax=1))
+plt.colorbar(h[3])
+plt.ylabel(r'Degree of polynomial')
+plt.xlabel(r'Ridge lambda')
+plt.title(r'MSE as a function of lambda and complexity')
+plt.xscale('log')
+plt.legend()
+plt.show()
+fig7.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityRidge.png')
+plt.close()
+
         
 ### best lamda is the smallest one - in this case 0.00001
     
@@ -429,24 +500,29 @@ for degree in range(maxdegree):
     #print(bias___+variance___)
     
 
+fig3=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error')
-plt.plot(polydegree, bias___, label='bias')
+plt.plot(polydegree, bias___, label='Bias')
 plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
-plt.title(r'Bias Variance Tradeoff Ridge')
+plt.title(r'Bias Variance Tradeoff OLS')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig3.savefig(FIGURE_ID+'/BVD_Ridge.png')
+plt.close()
 
-
+fig4=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error test')
-plt.plot(polydegree, error_train, label='error training')
-plt.ylabel(r'Error')
+plt.plot(polydegree, error_train, label='Error training')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
-plt.title(r'Error_train_test_Ridge')
+plt.title(r'Train Test Error Ridge')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig4.savefig(FIGURE_ID+'/Error_train_test_Ridge.png')
 plt.close()
 
 
@@ -454,6 +530,10 @@ plt.close()
 
 lamdas = [0.0001, 0.001, 0.01, 0.1, 1]
 maxdegree = 20
+#prepare variables for the 2D hist
+degree_array = list(range(1,maxdegree+1))
+MSE_array = np.zeros((maxdegree,len(lamdas)))
+#
 
 for degree in range(maxdegree):
     l_degree = dict()
@@ -461,12 +541,15 @@ for degree in range(maxdegree):
     for lamda in lamdas: 
         m=degree
         X = Design_Matrix_X(x,y,n=m)
-        model_lasso = skl.Lasso(alpha=lamda).fit(X, z_1)
+        model_lasso = skl.Lasso(alpha=lamda,fit_intercept=False).fit(X, z_1)
         betas = model_lasso.coef_
         zlasso = model_lasso.predict(X)
         
         l_degree[str(lamda)] = MSE(z_1,zlasso)
-       # print(lamda)
+        #create array for MSE
+        MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zlasso)
+       # print(MSE_array)
+       # print("lamda=",lamda)
        # print(MSE(z_1,zridge))
        # print(R2(z_1,zridge))
     
@@ -474,6 +557,36 @@ for degree in range(maxdegree):
     a_min = min(a)
     min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
     print(min_lamda)
+    
+    
+print("MSE = ", MSE_array)
+
+fig8=plt.figure(figsize=(12,9))
+#prepare variables for 2D hist
+degree_array1,lamdas1 = np.meshgrid(degree_array,lamdas)
+degree_array1,lamdas1, MSE_array1 = np.ravel(degree_array1),np.flip(np.ravel(lamdas1)), np.ravel(MSE_array.T)
+#cycle for creating edges for the 2D hist based on chosen lambda
+edges=np.zeros(len(lamdas)+1)
+edges[0]=lamdas[0]/10+lamdas[0]/100
+for i in range(1,len(edges)):
+    edges[i]=lamdas[i-1]+lamdas[i-1]/10
+#print(edges)
+
+# choose the best looking plot
+#lin scale
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,20))
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,(5,15)))
+#log scale
+h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1,bins=(edges,20),norm=LogNorm(vmin=0.0001, vmax=1))
+plt.colorbar(h[3])
+plt.ylabel(r'Degree of polynomial')
+plt.xlabel(r'Lasso lambda')
+plt.title(r'MSE as a function of lambda and complexity')
+plt.xscale('log')
+plt.legend()
+plt.show()
+fig8.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityLasso.png')
+plt.close()
 
 lamda=0.0001
 model_lasso = skl.Lasso(alpha=lamda).fit(X, z_1)
@@ -481,6 +594,10 @@ betas = model_lasso.coef_
 zlasso = model_lasso.predict(X)
 print(MSE(z_1,zlasso))
 print(R2(z_1,zlasso))
+
+
+
+
     
 # =============================================================================
 # e = k_fold(5,x,y,z,5,skl.Lasso(alpha=lamda))    
@@ -607,20 +724,27 @@ for degree in range(maxdegree):
     #print(bias___+variance___)
     
 
+fig5=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error')
-plt.plot(polydegree, bias___, label='bias')
+plt.plot(polydegree, bias___, label='Bias')
 plt.plot(polydegree, variance___, label='Variance')
-plt.ylabel(r'Error')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
 plt.title(r'Bias Variance Tradeoff Lasso')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig5.savefig(FIGURE_ID+'/BVD_Lasso.png')
+plt.close()
 
+fig6=plt.figure(figsize=(12,9))
 plt.plot(polydegree, error_test, label='Error test')
-plt.plot(polydegree, error_train, label='error training')
+plt.plot(polydegree, error_train, label='Error training')
+plt.ylabel(r'MSE')
 plt.xlabel(r'Degree of polynomial')
-plt.title(r'Error_train_test_Lasso')
+plt.title(r'Train Test Error Lasso')
 plt.yscale('log')
 plt.legend()
 plt.show()
+fig6.savefig(FIGURE_ID+'/Error_train_test_Lasso.png')
+plt.close()
