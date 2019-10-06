@@ -339,7 +339,10 @@ for degree in range(maxdegree):
     
    
        # c = k_fold(5,x,y,z,5,skl.Ridge(alpha=lamda))
-       
+
+a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
+print(a_r[0])
+print(a_r[1])
        
 print("MSE = ", MSE_array)
 
@@ -370,11 +373,6 @@ plt.close()
 
         
 ### best lamda is the smallest one - in this case 0.00001
-    
-#print(c[0])
-#print(c[1])
-#print(c[2])
-#print(c[3])
 
 # =============================================================================
 # def fold_degree_r(x,y,z,k,lamdas):
