@@ -533,6 +533,7 @@ fig8.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityLasso.png')
 plt.close()
 
 lamda=0.0001
+X= Design_Matrix_X(x,y,n=5)
 model_lasso = skl.Lasso(alpha=lamda).fit(X, z_1)
 betas = model_lasso.coef_
 zlasso = model_lasso.predict(X)
