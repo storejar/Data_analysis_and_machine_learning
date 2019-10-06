@@ -466,12 +466,12 @@ for degree in range(maxdegree):
 print(min_lamda_degree_l)
     
 X_5l = Design_Matrix_X(x.ravel(),y.ravel(),n=5)
-beta_l_5 = skl.Lasso(alpha=1).fit(X_5l, z_1)
+beta_l_5 = skl.Lasso(alpha=0.0001).fit(X_5l, z_1)
 zlasso_5 = beta_l_5.predict(X_5l)
 print(MSE(z_1,zlasso_5))
 print(R2(z_1,zlasso_5))
 
-a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.00001))
+a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.0001))
 print(a_l[0])
 print(a_l[1])
 
