@@ -191,7 +191,6 @@ def k_fold(k,x,y,z,m,model):
     n_k=int(n/k)
     MSE_K_t = 0
     R2_K_t = 0
-    betas = np.zeros((k,int((m+1)*(m+2)/2)))
     for i in range(k):
         x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z.reshape(361,181),j[i*n_k:(i+1)*n_k])
         X = Design_Matrix_X(x_l.ravel(),y_l.ravel(),m)
@@ -201,7 +200,6 @@ def k_fold(k,x,y,z,m,model):
         beta1 = model.fit(X, z_l.ravel())
         #print(beta[0])
         beta = beta1.coef_
-        betas[i] = beta
         ztilde1 = beta1.predict(X_test)
         #print(ztilde1)
         MSE_K_t+=MSE(z_test, ztilde1)
@@ -218,7 +216,7 @@ def k_fold(k,x,y,z,m,model):
     #print(bias_t)
     #print(variance_t)
     
-    return (MSE_t, R2_t, np.std(betas, axis = 0), np.mean(betas, axis = 0))
+    return (MSE_t, R2_t)
 
 a=k_fold(5,x,y,z_1,5,LinearRegression())
 print(a[0])
@@ -369,6 +367,9 @@ zridge_5 = X_5 @ beta_r_5
 print(MSE(z_1,zridge_5))
 print(R2(z_1,zridge_5))
 
+a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
+print(a_r[0])
+print(a_r[1])
 
 n_boostraps = 10
 error_test = np.zeros(maxdegree)
@@ -469,6 +470,10 @@ beta_l_5 = skl.Lasso(alpha=1).fit(X_5l, z_1)
 zlasso_5 = beta_l_5.predict(X_5l)
 print(MSE(z_1,zlasso_5))
 print(R2(z_1,zlasso_5))
+
+a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.00001))
+print(a_l[0])
+print(a_l[1])
 
 n_boostraps = 10
 error_test = np.zeros(maxdegree)
