@@ -142,17 +142,8 @@ def k_fold(k,x,y,z,m,model):
     n_k=int(n/k)
     MSE_K_t = 0
     R2_K_t = 0
-    Variance_t=0
-    Bias_t=0
-    betas = np.zeros((k,int((m+1)*(m+2)/2)))
-    z_pred = np.zeros((200,k))
-    z_test1 = np.zeros((200,k))
-    z_train1 = np.zeros((800,k))
-    z_pred_train = np.zeros((800,k))
     for i in range(k):
         x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z,j[i*n_k:(i+1)*n_k])
-        z_test1[:,i]=z_test
-        z_train1[:,i]=z_l
         X = Design_Matrix_X(x_l,y_l,m)
         X_test= Design_Matrix_X(x_test,y_test,m)
         #print(pd.DataFrame(X))
@@ -160,75 +151,28 @@ def k_fold(k,x,y,z,m,model):
         beta1= model.fit(X,z_l)
         beta = beta1.coef_
         #print(beta[0])
-        betas[i] = beta
         ztilde1 = beta1.predict(X_test)
-        ztilde_l = beta1.predict(X)
         #print(ztilde1)
-        z_pred[:,i] = ztilde1
-        z_pred_train[:,i] = ztilde_l
-       # MSE_K_t+=MSE(z_test,ztilde1)
+        MSE_K_t+=MSE(z_test,ztilde1)
         R2_K_t+=R2(z_test,ztilde1)
-       # Bias_t+=bias(z_test,ztilde1)
-       # Variance_t+=variance(ztilde1)
-# check if the values computed with our function and using the methods in lines 161-163 are the same
-    #error_t = MSE_K_t/k
-    #bias_t = Bias_t/k
-    #variance_t = Variance_t/k
-    R2_t = R2_K_t/k
-    #print(error_t)
-    #print(bias_t)
-    #print(variance_t)
-
-    error_test = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
-    bias___ = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
-    variance___ = np.mean( (z_pred - np.mean(z_pred, axis=1, keepdims=True))**2 )
-    error_train = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+    MSE_ = MSE_K_t/k
+    R2_ = R2_K_t/k
     
-    return (error_test, bias___,variance___ , error_train, R2_t, np.std(betas, axis = 0), np.mean(betas, axis = 0))
-
-
-def variance(y_tilde):
-	return np.sum((y_tilde - np.mean(y_tilde))**2)/np.size(y_tilde)
-
-def bias(y, y_tilde):
-	return np.sum((y - np.mean(y_tilde))**2)/np.size(y_tilde)
+    return (MSE_, R2_)
 
 a=k_fold(5,x,y,z_1,5,LinearRegression(fit_intercept=False))
-error_test = a[0]
-bias___ = a[1]
-variance___ = a[2]
-error_train = a[3]
-print('{} = {} + {}= {}'.format(error_test, bias___, variance___, bias___+variance___))
-print(a[0], a[4])
+print(a[0], a[1])
 
 
 print('BBB')
 from sklearn import model_selection
 from sklearn.linear_model import LinearRegression
 kfold = model_selection.KFold(n_splits=5, shuffle=True)
-X= Design_Matrix_X(x,y,n=5)
 k=5
-z_pred = []
-z_test1 = []
-z_train1 = []
-z_pred_train = []
-for train_index, test_index in kfold.split(X):
-    #print("TRAIN:", train_index, "TEST:", test_index)
-    X_train, X_test = X[train_index], X[test_index]
-    z_train, z_test = z[train_index], z[test_index]
-    z_test1.append(z_test)
-    z_train1.append(z_train)
-    #print(X_train.shape, X_test.shape)
-    model = LinearRegression(fit_intercept=False)
-    model.fit(X_train,z_train)
-    z_pred.append(model.predict(X_test))
-    z_pred_train.append(model.predict(X_train))
-bias = np.mean( (z_test - np.mean(z_pred))**2 )
-variance = np.mean( (z_pred - np.mean(z_pred))**2 )
+model = LinearRegression(fit_intercept=False)
+model.fit(X,z_1)
 mse = model_selection.cross_val_score(model, X, z_1, cv=kfold, scoring='neg_mean_squared_error')
 r2 = model_selection.cross_val_score(model, X, z_1, cv=kfold, scoring='r2')
-print(bias)
-print(variance)
 print(np.absolute(mse.mean()))
 print(r2.mean())
 
@@ -424,13 +368,11 @@ plt.show()
 fig7.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityRidge.png')
 plt.close()
 
+a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
+print(a_r[0])
+print(a_r[1])
         
 ### best lamda is the smallest one - in this case 0.00001
-    
-#print(c[0])
-#print(c[1])
-#print(c[2])
-#print(c[3])
 
 # =============================================================================
 # def fold_degree_r(x,y,z,k,lamdas):
@@ -595,8 +537,9 @@ zlasso = model_lasso.predict(X)
 print(MSE(z_1,zlasso))
 print(R2(z_1,zlasso))
 
-
-
+a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.0001))
+print(a_l[0])
+print(a_l[1])
 
     
 # =============================================================================
