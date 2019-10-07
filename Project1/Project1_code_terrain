@@ -163,12 +163,11 @@ def R2 (ydata, ymodel):
    return 1-((ydata-ymodel).T@(ydata-ymodel))/((ydata-np.mean(ydata)).T@(ydata-np.mean(ydata)))
 
 
-print(MSE(z_1,ztilde))
-print(R2(z_1,ztilde))
+print("Mean squared error: %.10f" %MSE(z_1,ztilde))
+print('Variance score: %.10f' % R2(z_1,ztilde))
+print("Mean squared error STK: %.10f" % mean_squared_error(z_1, ztilde1))
+print('Variance score STK: %.10f' % r2_score(z_1, ztilde1))
 
-
-print("Mean squared error: %.2f" % mean_squared_error(z_1, ztilde1))
-print('Variance score: %.2f' % r2_score(z_1, ztilde1))
 
 ## part b
 
@@ -219,8 +218,8 @@ def k_fold(k,x,y,z,m,model):
     return (MSE_t, R2_t)
 
 a=k_fold(5,x,y,z_1,5,LinearRegression())
-print(a[0])
-print(a[1])
+print("Mean squared error CV: %.10f" % a[0])
+print('Variance score CV: %.10f' % a[1])
 
 # =============================================================================
 # from sklearn.utils import resample
@@ -339,8 +338,11 @@ for degree in range(maxdegree):
         M = np.linalg.inv(X.T.dot(X)+lamda*np.identity(int((m+1)*(m+2)/2)))
         var_beta_ridge = M.dot(X.T).dot(X).dot(M.T)
         var_b_ridge = np.diag(var_beta_ridge)
-       # print("Variance of betas")
-       # print(var_b_ridge)
+        print("Mean squared error: %.10f" % MSE(z_1,zridge))
+        print('Variance score: %.10f' % R2(z_1,zridge))
+        print("Mean squared error STK: %.10f" % mean_squared_error(z_1, zridge1))
+        print('Variance score STK: %.10f' % r2_score(z_1, zridge1))
+
     
         l1_Ridge = beta_r - 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
         l2_Ridge = beta_r + 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
@@ -368,8 +370,8 @@ print(MSE(z_1,zridge_5))
 print(R2(z_1,zridge_5))
 
 a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
-print(a_r[0])
-print(a_r[1])
+print("Mean squared error CV: %.10f" % a_r[0])
+print('Variance score CV: %.10f' % a_r[1])
 
 n_boostraps = 10
 error_test = np.zeros(maxdegree)
@@ -454,8 +456,11 @@ for degree in range(maxdegree):
         
         l_degree[str(lamda)] = MSE(z_1,zlasso)
        # print(lamda)
-       # print(MSE(z_1,zridge))
-       # print(R2(z_1,zridge))
+       print("Mean squared error: %.10f" %MSE(z_1,zlasso))
+       print('Variance score: %.10f' % R2(z_1,zlasso))
+       print("Mean squared error STK: %.10f" % mean_squared_error(z_1, zlasso))
+       print('Variance score STK: %.10f' % r2_score(z_1, zlasso))
+    
     
     a = list(l_degree.values())
     a_min = min(a)
@@ -472,8 +477,8 @@ print(MSE(z_1,zlasso_5))
 print(R2(z_1,zlasso_5))
 
 a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.0001))
-print(a_l[0])
-print(a_l[1])
+print("Mean squared error CV: %.10f" % a_l[0])
+print('Variance score CV: %.10f' % a_l[1])
 
 n_boostraps = 10
 error_test = np.zeros(maxdegree)
