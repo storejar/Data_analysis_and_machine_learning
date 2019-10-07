@@ -115,12 +115,11 @@ def R2 (ydata, ymodel):
    return 1-((ydata-ymodel).T@(ydata-ymodel))/((ydata-np.mean(ydata)).T@(ydata-np.mean(ydata)))
 
 
-print(MSE(z_1,ztilde))
-print(R2(z_1,ztilde))
+print("Mean squared error: %.10f" %MSE(z_1,ztilde))
+print('Variance score: %.10f' % R2(z_1,ztilde))
+print("Mean squared error STK: %.10f" % mean_squared_error(z_1, ztilde))
+print('Variance score STK: %.10f' % r2_score(z_1, ztilde))
 
-
-print("Mean squared error: %.2f" % mean_squared_error(z_1, ztilde))
-print('Variance score: %.2f' % r2_score(z_1, ztilde))
 
 ## part b
 
@@ -161,7 +160,8 @@ def k_fold(k,x,y,z,m,model):
     return (MSE_, R2_)
 
 a=k_fold(5,x,y,z_1,5,LinearRegression(fit_intercept=False))
-print(a[0], a[1])
+print("Mean squared error CV: %.10f" % a[0])
+print('Variance score CV: %.10f' % a[1])
 
 
 print('BBB')
@@ -329,20 +329,20 @@ for degree in range(maxdegree):
         MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zridge)
        # print(MSE_array)
        # print("lamda=",lamda)
-        print(MSE(z_1,zridge))
-        print(R2(z_1,zridge))
+        print("Mean squared error: %.2f" % MSE(z_1,zridge))
+        print('Variance score: %.10f' % R2(z_1,zridge))
+        print("Mean squared error STK: %.10f" % mean_squared_error(z_1, zridge))
+        print('Variance scoreSTK: %.10f' % r2_score(z_1, zridge))
     
     a = list(l_degree.values())
     a_min = min(a)
     min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
     print(min_lamda)
     
-   
-       # c = k_fold(5,x,y,z,5,skl.Ridge(alpha=lamda))
 
 a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
-print(a_r[0])
-print(a_r[1])
+print("Mean squared error CV: %.10f" % a_r[0])
+print('Variance score CV: %.10f' % a_r[1])
        
 print("MSE = ", MSE_array)
 
@@ -494,8 +494,11 @@ for degree in range(maxdegree):
         MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zlasso)
        # print(MSE_array)
        # print("lamda=",lamda)
-        print(MSE(z_1,zlasso))
-        print(R2(z_1,zlasso))
+        print("Mean squared error: %.10f" %MSE(z_1,zlasso))
+        print('Variance score: %.10f' % R2(z_1,zlasso))
+        print("Mean squared error STK: %.10f" % mean_squared_error(z_1, zlasso))
+        print('Variance score STK: %.10f' % r2_score(z_1, zlasso))
+    
     
     a = list(l_degree.values())
     a_min = min(a)
@@ -541,8 +544,8 @@ print(MSE(z_1,zlasso))
 print(R2(z_1,zlasso))
 
 a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.0001))
-print(a_l[0])
-print(a_l[1])
+print("Mean squared error CV: %.10f" % a_l[0])
+print('Variance score CV: %.10f' % a_l[1])
 
     
 # =============================================================================
