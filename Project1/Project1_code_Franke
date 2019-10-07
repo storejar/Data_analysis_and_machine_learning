@@ -329,8 +329,8 @@ for degree in range(maxdegree):
         MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zridge)
        # print(MSE_array)
        # print("lamda=",lamda)
-       # print(MSE(z_1,zridge))
-       # print(R2(z_1,zridge))
+        print(MSE(z_1,zridge))
+        print(R2(z_1,zridge))
     
     a = list(l_degree.values())
     a_min = min(a)
@@ -494,8 +494,8 @@ for degree in range(maxdegree):
         MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zlasso)
        # print(MSE_array)
        # print("lamda=",lamda)
-       # print(MSE(z_1,zridge))
-       # print(R2(z_1,zridge))
+        print(MSE(z_1,zlasso))
+        print(R2(z_1,zlasso))
     
     a = list(l_degree.values())
     a_min = min(a)
