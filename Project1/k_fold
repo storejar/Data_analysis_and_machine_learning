@@ -1,0 +1,24 @@
+def k_fold(k,x,y,z,m,model):
+    n=len(x)
+    j=np.arange(n)
+    np.random.shuffle(j)
+    n_k=int(n/k)
+    MSE_K_t = 0
+    R2_K_t = 0
+    for i in range(k):
+        x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z,j[i*n_k:(i+1)*n_k])
+        X = Design_Matrix_X(x_l,y_l,m)
+        X_test= Design_Matrix_X(x_test,y_test,m)
+        #print(pd.DataFrame(X))
+        #print(pd.DataFrame(X_test))
+        beta1= model.fit(X,z_l)
+        beta = beta1.coef_
+        #print(beta[0])
+        ztilde1 = beta1.predict(X_test)
+        #print(ztilde1)
+        MSE_K_t+=MSE(z_test,ztilde1)
+        R2_K_t+=R2(z_test,ztilde1)
+    MSE_ = MSE_K_t/k
+    R2_ = R2_K_t/k
+    
+    return (MSE_, R2_)
