@@ -1,0 +1,696 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Oct  5 17:23:40 2019
+
+@author: Jarda
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 27 15:06:27 2019
+
+@author: annam
+"""
+
+import os
+import math
+
+#library for log scale 2D hist
+from matplotlib.colors import LogNorm
+
+import numpy as np
+import pandas as pd
+import sklearn.linear_model as skl
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+# create Output folder for figures
+FIGURE_ID = "Output"
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+# set font in figures
+plt.rc('font', size=20)
+
+#np.random.seed(2204)
+
+## part a
+def FrankeFunction(x,y):
+    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+    return term1 + term2 + term3 + term4
+
+def Design_Matrix_X(x, y, n):
+	N = len(x)
+	l = int((n+1)*(n+2)/2)		
+	X = np.ones((N,l))
+
+	for i in range(1,n+1):
+		q = int((i)*(i+1)/2)
+		for k in range(i+1):
+			X[:,q+k] = x**(i-k) * y**k
+
+	return X
+
+n_x=1000
+m=5
+
+x = np.random.uniform(0, 1, n_x)
+y = np.random.uniform(0, 1, n_x)
+
+z = FrankeFunction(x, y)
+
+#print(x)
+
+n = int(len(x))
+z_1 = z +0.01*np.random.randn(n)
+
+X= Design_Matrix_X(x,y,n=m)
+DesignMatrix = pd.DataFrame(X)
+#print(DesignMatrix)
+
+a = np.linalg.matrix_rank(X) #we check it is not a singular matrix
+#print(a)
+
+beta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(z_1)
+ztilde = X @ beta
+#print(beta)
+
+beta1 = skl.LinearRegression().fit(X,z_1) #function .fit fits linear models
+ztilde1 = beta1.predict(X)
+
+
+#print(ztilde)
+#print('--')
+#print(ztilde1)
+
+var_beta_OLS = 1*np.linalg.inv(X.T.dot(X))
+var = pd.DataFrame(var_beta_OLS)
+#print(var)
+var_diag=np.diag(var_beta_OLS)
+print(var_diag)
+print("beta = ", beta)
+
+
+l1_OLS = beta - 1.96*np.sqrt((var_diag)/(X.shape[0]))
+l2_OLS = beta + 1.96*np.sqrt((var_diag)/(X.shape[0]))
+print(pd.concat([pd.DataFrame(l1_OLS),pd.DataFrame(l2_OLS)],axis=1))
+#printout useful for report
+#print(pd.concat([pd.DataFrame(beta),pd.DataFrame((l2_OLS-beta)/beta*100)],axis=1))
+#print(l1_OLS)
+#print(l2_OLS)
+
+def MSE (ydata, ymodel):
+    n = np.size(ymodel)
+    y = (ydata - ymodel).T@(ydata - ymodel)
+    y = y/n
+    return y
+
+def R2 (ydata, ymodel):
+   return 1-((ydata-ymodel).T@(ydata-ymodel))/((ydata-np.mean(ydata)).T@(ydata-np.mean(ydata)))
+
+
+print(MSE(z_1,ztilde))
+print(R2(z_1,ztilde))
+
+
+print("Mean squared error: %.2f" % mean_squared_error(z_1, ztilde))
+print('Variance score: %.2f' % r2_score(z_1, ztilde))
+
+## part b
+
+def train_test_splitdata(x_,y_,z_,i):
+
+	x_learn=np.delete(x_,i)
+	y_learn=np.delete(y_,i)
+	z_learn=np.delete(z_,i)
+	x_test=np.take(x_,i)
+	y_test=np.take(y_,i)
+	z_test=np.take(z_,i)
+
+	return x_learn,y_learn,z_learn,x_test,y_test,z_test
+
+def k_fold(k,x,y,z,m,model):
+    n=len(x)
+    j=np.arange(n)
+    np.random.shuffle(j)
+    n_k=int(n/k)
+    MSE_K_t = 0
+    R2_K_t = 0
+    for i in range(k):
+        x_l,y_l,z_l,x_test,y_test,z_test=train_test_splitdata(x,y,z,j[i*n_k:(i+1)*n_k])
+        X = Design_Matrix_X(x_l,y_l,m)
+        X_test= Design_Matrix_X(x_test,y_test,m)
+        #print(pd.DataFrame(X))
+        #print(pd.DataFrame(X_test))
+        beta1= model.fit(X,z_l)
+        beta = beta1.coef_
+        #print(beta[0])
+        ztilde1 = beta1.predict(X_test)
+        #print(ztilde1)
+        MSE_K_t+=MSE(z_test,ztilde1)
+        R2_K_t+=R2(z_test,ztilde1)
+    MSE_ = MSE_K_t/k
+    R2_ = R2_K_t/k
+    
+    return (MSE_, R2_)
+
+a=k_fold(5,x,y,z_1,5,LinearRegression(fit_intercept=False))
+print(a[0], a[1])
+
+
+print('BBB')
+from sklearn import model_selection
+from sklearn.linear_model import LinearRegression
+kfold = model_selection.KFold(n_splits=5, shuffle=True)
+k=5
+model = LinearRegression(fit_intercept=False)
+model.fit(X,z_1)
+mse = model_selection.cross_val_score(model, X, z_1, cv=kfold, scoring='neg_mean_squared_error')
+r2 = model_selection.cross_val_score(model, X, z_1, cv=kfold, scoring='r2')
+print(np.absolute(mse.mean()))
+print(r2.mean())
+
+
+# part c
+
+maxdegree = 20
+
+# =============================================================================
+# def fold_degree(maxdegree,x,y,z,k):
+#     error__t = np.zeros(maxdegree)
+#     bias__t = np.zeros(maxdegree)
+#     variance__t = np.zeros(maxdegree)
+#     polydegree = np.zeros(maxdegree)
+#     var_score__t = np.zeros(maxdegree)
+#     error__l = np.zeros(maxdegree)
+#     for degree in range(maxdegree):
+#         #z_pred = np.empty((2000, k))
+#         degree_fold = k_fold(k, x, y, z, degree, LinearRegression())
+#         error_t = degree_fold[0]
+#         bias_t = degree_fold[1]
+#         variance_t = degree_fold[2]
+#         var_score_t = degree_fold[4]
+#         error_l = degree_fold[3]
+#         polydegree[degree] = degree
+#         error__t[degree] = error_t
+#         bias__t[degree] = bias_t
+#         variance__t[degree] = variance_t
+#         var_score__t[degree] = var_score_t
+#         error__l[degree] = error_l
+#         print(degree)
+#         print(error_t)
+#         print(variance_t)
+#     return (polydegree, error__t, bias__t, variance__t, var_score__t, error__l)
+# 
+# b = fold_degree(maxdegree, x, y, z, 5)
+# #print(b[1])
+# #print(b[2], b[3])
+# #print(b[1]+b[3])
+# 
+# plt.plot(b[0], (b[1]), label='Error')
+# plt.plot(b[0], (b[2]), label='bias')
+# plt.plot(b[0], (b[3]), label='Variance')
+# plt.legend()
+# plt.show()
+# 
+# plt.plot(b[0], (b[1]), label='Error test')
+# plt.plot(b[0], (b[5]), label='Error learning')
+# plt.legend()
+# plt.show()
+# =============================================================================
+
+from sklearn.utils import resample
+
+n_boostraps = 100
+
+error_test = np.zeros(maxdegree)
+bias___ = np.zeros(maxdegree)
+variance___ = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+error_train = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.2, shuffle=True)
+z_test1 = np.zeros((200,100))
+z_train1 = np.zeros((800,100))
+for i in range(100):
+    z_test1[:,i]=z_test
+
+for degree in range(maxdegree):
+    model = LinearRegression(fit_intercept=False)
+    z_pred = np.empty((z_test.shape[0],n_boostraps))
+    z_pred_train = np.empty((z_train.shape[0],n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_, z_ = resample(x_train, y_train, z_train)
+        z_train1[:,i] = z_
+        X_train = Design_Matrix_X(x_,y_,degree)
+        X_test= Design_Matrix_X(x_test,y_test,degree)  
+        z_pred[:, i] = model.fit(X_train, z_).predict(X_test).ravel()
+        z_pred_train[:, i] = model.fit(X_train, z_).predict(X_train).ravel()
+    
+    polydegree[degree] = degree
+    error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+    bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+    variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+    error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+    #print(degree)
+    #print(error_test)
+    #print(bias___)
+    #print(variance___)
+    #print(bias___+variance___)
+    
+
+fig1=plt.figure(figsize=(12,9))
+plt.plot(polydegree, error_test, label='Error')
+plt.plot(polydegree, bias___, label='Bias')
+plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'MSE')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Bias Variance Tradeoff OLS')
+plt.yscale('log')
+plt.legend()
+plt.show()
+fig1.savefig(FIGURE_ID+'/BVD_OLS.png')
+plt.close()
+
+fig2=plt.figure(figsize=(12,9))
+plt.plot(polydegree, error_test, label='Error test')
+plt.plot(polydegree, error_train, label='Error training')
+plt.ylabel(r'MSE')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Train Test Error OLS')
+plt.yscale('log')
+plt.legend()
+plt.show()
+fig2.savefig(FIGURE_ID+'/Error_train_test_OLS.png')
+plt.close()
+
+#part d
+
+lamdas = [0.00001, 0.0001, 0.001, 0.01, 0.1, 1]
+maxdegree = 50
+#preaprae variables for the 2D hist
+degree_array = list(range(1,maxdegree+1))
+MSE_array = np.zeros((maxdegree,len(lamdas)))
+#
+
+for degree in range(maxdegree):
+    l_degree = dict()
+    print(degree)
+    for lamda in lamdas: 
+        m=degree
+        X = Design_Matrix_X(x,y,n=m)
+        beta_r = np.linalg.inv(X.T.dot(X)+lamda*np.identity(int((m+1)*(m+2)/2))).dot(X.T).dot(z_1)
+        zridge = X @ beta_r
+       # print("Beta parameters") 
+       # print(beta_r)
+    #print(zridge)
+    
+        clf_ridge = skl.Ridge(alpha=lamda).fit(X, z_1)
+        zridge1 = clf_ridge.predict(X)
+    #print(zridge1)
+    
+        M = np.linalg.inv(X.T.dot(X)+lamda*np.identity(int((m+1)*(m+2)/2)))
+        var_beta_ridge = M.dot(X.T).dot(X).dot(M.T)
+        var_b_ridge = np.diag(var_beta_ridge)
+       # print("Variance of betas")
+       # print(var_b_ridge)
+    
+        l1_Ridge = beta_r - 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
+        l2_Ridge = beta_r + 1.96*np.sqrt((var_b_ridge)/(X.shape[0]))
+    #print(l1_Ridge)
+    #print(l2_Ridge)
+        l_degree[str(lamda)] = MSE(z_1,zridge)
+        #create array for MSE
+        MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zridge)
+       # print(MSE_array)
+       # print("lamda=",lamda)
+       # print(MSE(z_1,zridge))
+       # print(R2(z_1,zridge))
+    
+    a = list(l_degree.values())
+    a_min = min(a)
+    min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
+    print(min_lamda)
+    
+   
+       # c = k_fold(5,x,y,z,5,skl.Ridge(alpha=lamda))
+
+a_r=k_fold(5,x,y,z_1,5,skl.Ridge(alpha=0.00001))
+print(a_r[0])
+print(a_r[1])
+       
+print("MSE = ", MSE_array)
+
+fig7=plt.figure(figsize=(12,9))
+#prepare variables for 2D hist
+degree_array1,lamdas1 = np.meshgrid(degree_array,lamdas)
+degree_array1,lamdas1, MSE_array1 = np.ravel(degree_array1),np.flip(np.ravel(lamdas1)), np.ravel(MSE_array.T)
+#cycle for creating edges for the 2D hist based on chosen lambda
+edges=np.zeros(len(lamdas)+1)
+edges[0]=lamdas[0]/10+lamdas[0]/100
+for i in range(1,len(edges)):
+    edges[i]=lamdas[i-1]+lamdas[i-1]/10
+#print(edges)
+
+# choose the best looking plot
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,20))
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,(5,15)))
+h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1,bins=(edges,20),norm=LogNorm(vmin=0.0001, vmax=1))
+plt.colorbar(h[3])
+plt.ylabel(r'Degree of polynomial')
+plt.xlabel(r'Ridge lambda')
+plt.title(r'MSE as a function of lambda and complexity')
+plt.xscale('log')
+plt.legend()
+plt.show()
+fig7.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityRidge.png')
+plt.close()
+
+        
+### best lamda is the smallest one - in this case 0.00001
+
+# =============================================================================
+# def fold_degree_r(x,y,z,k,lamdas):
+#     error = np.zeros(len(lamdas))
+#     bias = np.zeros(len(lamdas))
+#     variance = np.zeros(len(lamdas))
+#     polylamda = np.zeros(len(lamdas))
+#     for lamda in lamdas: 
+#         lamda_fold = k_fold(k, x, y, z, 5, skl.Ridge(alpha=lamda))
+#         error_ = lamda_fold[0]
+#         bias_ = lamda_fold[2]
+#         #print(bias_)
+#         variance_ = lamda_fold[3]
+#        # print('AAA')
+#         #print(lamdas.index(lamda))
+#         polylamda[lamdas.index(lamda)] = lamda
+#         error[lamdas.index(lamda)] = error_
+#         bias[lamdas.index(lamda)] = bias_
+#         variance[lamdas.index(lamda)] = variance_
+#     return (polylamda, error, bias, variance)
+# 
+# d = fold_degree_r(x, y, z, 5, lamdas)
+# #print(b[2])
+# 
+# plt.plot(d[0], d[1], label='Error')
+# plt.plot(d[0], d[2], label='bias')
+# plt.plot(d[0], d[3], label='Variance')
+# plt.legend()
+# plt.show()
+# =============================================================================
+
+n_boostraps = 100
+
+
+error_test = np.zeros(maxdegree)
+bias___ = np.zeros(maxdegree)
+variance___ = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+error_train = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.2, shuffle=True)
+z_test1 = np.zeros((200,100))
+z_train1 = np.zeros((800,100))
+for i in range(100):
+    z_test1[:,i]=z_test
+
+for lamda in lamdas:
+    print("working on lamda ", lamda)
+    for degree in range(maxdegree):
+        model = skl.Ridge(alpha=lamda)
+        z_pred = np.empty((z_test.shape[0],n_boostraps))
+        z_pred_train = np.empty((z_train.shape[0],n_boostraps))
+        for i in range(n_boostraps):
+            x_, y_, z_ = resample(x_train, y_train, z_train)
+            z_train1[:,i] = z_
+            X_train = Design_Matrix_X(x_,y_,degree)
+            X_test= Design_Matrix_X(x_test,y_test,degree)  
+            z_pred[:, i] = model.fit(X_train, z_).predict(X_test).ravel()
+            z_pred_train[:, i] = model.fit(X_train, z_).predict(X_train).ravel()
+    
+        polydegree[degree] = degree
+        error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+        bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+        variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+        error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+        #print(degree)
+        #print(error_test)
+        #print(bias___)
+        #print(variance___)
+        #print(bias___+variance___)
+    
+
+    fig3=plt.figure(figsize=(12,9))
+    plt.plot(polydegree, error_test, label='Error')
+    plt.plot(polydegree, bias___, label='Bias')
+    plt.plot(polydegree, variance___, label='Variance')
+    plt.ylabel(r'MSE')
+    plt.xlabel(r'Degree of polynomial')
+    plt.title(r'Bias Variance Tradeoff Ridge for $\lambda=$'+str(lamda))
+    plt.yscale('log')
+    plt.legend()
+    plt.show()
+    fig3.savefig(FIGURE_ID+'/BVD_Ridge_l'+str(lamda)+'.png')
+    plt.close()
+	
+    fig4=plt.figure(figsize=(12,9))
+    plt.plot(polydegree, error_test, label='Error test')
+    plt.plot(polydegree, error_train, label='Error training')
+    plt.ylabel(r'MSE')
+    plt.xlabel(r'Degree of polynomial')
+    plt.title(r'Train Test Error Ridge for $\lambda=$'+str(lamda))
+    plt.yscale('log')
+    plt.legend()
+    plt.show()
+    fig4.savefig(FIGURE_ID+'/Error_train_test_Ridge_l'+str(lamda)+'.png')
+    plt.close()
+
+
+# part e)
+
+lamdas = [0.0001, 0.001, 0.01, 0.1, 1]
+maxdegree = 20
+#prepare variables for the 2D hist
+degree_array = list(range(1,maxdegree+1))
+MSE_array = np.zeros((maxdegree,len(lamdas)))
+#
+
+for degree in range(maxdegree):
+    l_degree = dict()
+    print(degree)
+    for lamda in lamdas: 
+        m=degree
+        X = Design_Matrix_X(x,y,n=m)
+        model_lasso = skl.Lasso(alpha=lamda,fit_intercept=False).fit(X, z_1)
+        betas = model_lasso.coef_
+        zlasso = model_lasso.predict(X)
+        
+        l_degree[str(lamda)] = MSE(z_1,zlasso)
+        #create array for MSE
+        MSE_array[degree,round(-math.log(lamda,10))]  = MSE(z_1,zlasso)
+       # print(MSE_array)
+       # print("lamda=",lamda)
+       # print(MSE(z_1,zridge))
+       # print(R2(z_1,zridge))
+    
+    a = list(l_degree.values())
+    a_min = min(a)
+    min_lamda = list(l_degree.keys())[list(l_degree.values()).index(a_min)]
+    print(min_lamda)
+    
+    
+print("MSE = ", MSE_array)
+
+fig8=plt.figure(figsize=(12,9))
+#prepare variables for 2D hist
+degree_array1,lamdas1 = np.meshgrid(degree_array,lamdas)
+degree_array1,lamdas1, MSE_array1 = np.ravel(degree_array1),np.flip(np.ravel(lamdas1)), np.ravel(MSE_array.T)
+#cycle for creating edges for the 2D hist based on chosen lambda
+edges=np.zeros(len(lamdas)+1)
+edges[0]=lamdas[0]/10+lamdas[0]/100
+for i in range(1,len(edges)):
+    edges[i]=lamdas[i-1]+lamdas[i-1]/10
+#print(edges)
+
+# choose the best looking plot
+#lin scale
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,20))
+#h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1, bins=(edges,(5,15)))
+#log scale
+h=plt.hist2d(lamdas1, degree_array1, weights=MSE_array1,bins=(edges,20),norm=LogNorm(vmin=0.0001, vmax=1))
+plt.colorbar(h[3])
+plt.ylabel(r'Degree of polynomial')
+plt.xlabel(r'Lasso lambda')
+plt.title(r'MSE as a function of lambda and complexity')
+plt.xscale('log')
+plt.legend()
+plt.show()
+fig8.savefig(FIGURE_ID+'/MSEvsLambdaVsComplexityLasso.png')
+plt.close()
+
+lamda=0.0001
+X= Design_Matrix_X(x,y,n=5)
+model_lasso = skl.Lasso(alpha=lamda).fit(X, z_1)
+betas = model_lasso.coef_
+zlasso = model_lasso.predict(X)
+print(MSE(z_1,zlasso))
+print(R2(z_1,zlasso))
+
+a_l=k_fold(5,x,y,z_1,5,skl.Lasso(alpha=0.0001))
+print(a_l[0])
+print(a_l[1])
+
+    
+# =============================================================================
+# e = k_fold(5,x,y,z,5,skl.Lasso(alpha=lamda))    
+# print(e[0])
+# 
+# lamdas = [0.001, 0.01, 0.1, 1]
+# 
+# def fold_degree_r(x,y,z,k):
+#     lamdas = [0.001, 0.01, 0.1, 1]
+#     error = np.zeros(len(lamdas))
+#     bias = np.zeros(len(lamdas))
+#     variance = np.zeros(len(lamdas))
+#     polylamda = np.zeros(len(lamdas))
+#     for lamda in lamdas: 
+#         lamda_fold = k_fold(k, x, y, z, 5, skl.Lasso(alpha=lamda))
+#         error_ = lamda_fold[0]
+#         bias_ = lamda_fold[2]
+#         #print(bias_)
+#         variance_ = lamda_fold[3]
+#        # print('AAA')
+#         #print(lamdas.index(lamda))
+#         polylamda[lamdas.index(lamda)] = lamda
+#         error[lamdas.index(lamda)] = error_
+#         bias[lamdas.index(lamda)] = bias_
+#         variance[lamdas.index(lamda)] = variance_
+#     return (polylamda, error, bias, variance)
+# 
+# f = fold_degree_r(x, y, z, 5)
+# print(f[1], f[2])
+# 
+# plt.plot(f[0], f[1], label='Error')
+# plt.plot(f[0], f[2], label='bias')
+# plt.plot(f[0], f[3], label='Variance')
+# plt.legend()
+# plt.show()
+# =============================================================================
+
+n_boostraps = 100
+
+# =============================================================================
+# error_test = np.zeros(len(lamdas))
+# bias___ = np.zeros(len(lamdas))
+# variance___ = np.zeros(len(lamdas))
+# polylamda = np.zeros(len(lamdas))
+# error_train = np.zeros(len(lamdas))
+# x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.2, shuffle=True)
+# z_test1 = np.zeros((200,100))
+# z_train1 = np.zeros((800,100))
+# for i in range(100):
+#     z_test1[:,i]=z_test
+# 
+# for lamda in lamdas:
+#     model = skl.Lasso(alpha=lamda)
+#     z_pred = np.empty((z_test.shape[0],n_boostraps))
+#     z_pred_train = np.empty((z_train.shape[0],n_boostraps))
+#     for i in range(n_boostraps):
+#         x_, y_, z_ = resample(x_train, y_train, z_train)
+#         z_train1[:,i] = z_
+#         X_train = Design_Matrix_X(x_,y_,5)
+#         X_test= Design_Matrix_X(x_test,y_test,5)  
+#         z_pred[:, i] = model.fit(X_train, z_).predict(X_test).ravel()
+#         z_pred_train[:, i] = model.fit(X_train, z_).predict(X_train).ravel()
+#     
+#     polylamda[lamdas.index(lamda)] = lamda
+#     error_test[lamdas.index(lamda)] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+#     bias___[lamdas.index(lamda)] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+#     variance___[lamdas.index(lamda)] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+#     error_train[lamdas.index(lamda)] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+#     print(lamda)
+#     print(error_test)
+#     print(bias___)
+#     print(variance___)
+#     print(bias___+variance___)
+#     
+# 
+# plt.plot(error_test, label='Error')
+# plt.semilogx(lamdas, error_test)
+# print(lamdas)
+# print(error_test)
+# plt.xlabel('lamdas')
+# plt.plot(lamdas, bias___, label='bias')
+# plt.plot(lamdas, variance___, label='Variance')
+# plt.legend()
+# plt.show()
+# 
+# plt.plot(lamdas, error_test, label='Error test')
+# plt.plot(lamdas, error_train, label='error training')
+# plt.legend()
+# plt.show()
+# =============================================================================
+
+error_test = np.zeros(maxdegree)
+bias___ = np.zeros(maxdegree)
+variance___ = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+error_train = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.2, shuffle=True)
+z_test1 = np.zeros((200,n_boostraps))
+z_train1 = np.zeros((800,n_boostraps))
+for i in range(100):
+    z_test1[:,i]=z_test
+
+for degree in range(maxdegree):
+    model = skl.Lasso(alpha=0.0001)
+    z_pred = np.empty((z_test.shape[0],n_boostraps))
+    z_pred_train = np.empty((z_train.shape[0],n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_, z_ = resample(x_train, y_train, z_train)
+        z_train1[:,i] = z_
+        X_train = Design_Matrix_X(x_,y_,degree)
+        X_test= Design_Matrix_X(x_test,y_test,degree)  
+        z_pred[:, i] = model.fit(X_train, z_).predict(X_test).ravel()
+        z_pred_train[:, i] = model.fit(X_train, z_).predict(X_train).ravel()
+    
+    polydegree[degree] = degree
+    error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+    bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+    variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+    error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
+    #print(degree)
+    #print(error_test)
+    #print(bias___)
+    #print(variance___)
+    #print(bias___+variance___)
+    
+
+fig5=plt.figure(figsize=(12,9))
+plt.plot(polydegree, error_test, label='Error')
+plt.plot(polydegree, bias___, label='Bias')
+plt.plot(polydegree, variance___, label='Variance')
+plt.ylabel(r'MSE')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Bias Variance Tradeoff Lasso')
+plt.yscale('log')
+plt.legend()
+plt.show()
+fig5.savefig(FIGURE_ID+'/BVD_Lasso.png')
+plt.close()
+
+fig6=plt.figure(figsize=(12,9))
+plt.plot(polydegree, error_test, label='Error test')
+plt.plot(polydegree, error_train, label='Error training')
+plt.ylabel(r'MSE')
+plt.xlabel(r'Degree of polynomial')
+plt.title(r'Train Test Error Lasso')
+plt.yscale('log')
+plt.legend()
+plt.show()
+fig6.savefig(FIGURE_ID+'/Error_train_test_Lasso.png')
+plt.close()
