@@ -1,0 +1,32 @@
+from sklearn.utils import resample
+
+n_boostraps = 100
+
+error_test = np.zeros(maxdegree)
+bias___ = np.zeros(maxdegree)
+variance___ = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+error_train = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x, y, z, test_size=0.2, shuffle=True)
+z_test1 = np.zeros((200,100))
+z_train1 = np.zeros((800,100))
+for i in range(100):
+    z_test1[:,i]=z_test
+
+for degree in range(maxdegree):
+    model = LinearRegression(fit_intercept=False)
+    z_pred = np.empty((z_test.shape[0],n_boostraps))
+    z_pred_train = np.empty((z_train.shape[0],n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_, z_ = resample(x_train, y_train, z_train)
+        z_train1[:,i] = z_
+        X_train = Design_Matrix_X(x_,y_,degree)
+        X_test= Design_Matrix_X(x_test,y_test,degree)  
+        z_pred[:, i] = model.fit(X_train, z_).predict(X_test).ravel()
+        z_pred_train[:, i] = model.fit(X_train, z_).predict(X_train).ravel()
+    
+    polydegree[degree] = degree
+    error_test[degree] = np.mean(np.mean((z_test1 - z_pred)**2 , axis=1, keepdims=True))
+    bias___[degree] = np.mean( (z_test1 - np.mean(z_pred, axis=1, keepdims=True))**2 )
+    variance___[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+    error_train[degree] = np.mean(np.mean((z_train1 - z_pred_train)**2 , axis=1, keepdims=True))
