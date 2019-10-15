@@ -1,0 +1,38 @@
+sex = [1,2]
+education = [1,2,3,4]
+marriage = [1,2,3]
+
+df = df[df['SEX'] in sex]
+df = df[df['EDUCATION'] in education]
+df = df[df['MARRIAGE'] in marriage]
+
+print(df)
+
+def standardize(df, label):
+    """
+    standardizes a series with name ``label'' within the pd.DataFrame
+    ``df''.
+    """
+    df = df.copy(deep=True)
+    series = df.loc[:, label]
+    avg = series.mean()
+    stdv = series.std()
+    series_standardized = (series - avg)/ stdv
+    return series_standardized
+
+df.LIMIT_BAL = standardize(df,"LIMIT_BAL")
+df.AGE = standardize(df,"AGE")
+df.BILL_AMT1 =standardize(df,"BILL_AMT1")
+df.BILL_AMT2 =standardize(df,"BILL_AMT2")
+df.BILL_AMT3 =standardize(df,"BILL_AMT3")
+df.BILL_AMT4 =standardize(df,"BILL_AMT4")
+df.BILL_AMT5 =standardize(df,"BILL_AMT5")
+df.BILL_AMT6 =standardize(df,"BILL_AMT6")
+df.PAY_AMT1 =standardize(df,"PAY_AMT1")
+df.PAY_AMT2 =standardize(df,"PAY_AMT2")
+df.PAY_AMT3 =standardize(df,"PAY_AMT3")
+df.PAY_AMT4 =standardize(df,"PAY_AMT4")
+df.PAY_AMT5 =standardize(df,"PAY_AMT5")
+df.PAY_AMT6 =standardize(df,"PAY_AMT6")
+
+print(df)
