@@ -35,6 +35,56 @@ def delete_zeros(X, n, from_column, to_column):
     X__ = np.delete(X,list_1,axis=0)  
     return X__
 
+
+'''
+perform gradient descend with matrix X_1, true values y, stop when gradient is 
+lower than epsilon and set lerning rate
+
+prints number of iteration
+output of the function are just betas that are used for X_test to evaluate model
+
+function includes debug option for additional printout
+
+'''
+def our_gradient_descent_beta(X_1, y, epsilon, learning_rate):
+    N_printout = 10000
+    debug = False
+    n_iterations = 0
+    betas=np.ones(X_1.shape[1])*0.001
+    #print(betas.shape)
+    gradient_norm = 2*epsilon
+    p = np.zeros((X_1.shape[0]))
+    #print(p)
+    #print(y.shape)
+    #print(p.shape)
+    while gradient_norm > epsilon:      
+        for i in range(X_1.shape[0]):
+            if debug:
+                if i%N_printout == 0: 
+                    print("multiplication = ", X_1[i,:].dot(betas))
+                if i%N_printout == 0:
+                    print("exp = ", np.exp(X_1[i,:].dot(betas)))
+            p[i] = (np.exp((X_1[i,:]).dot(betas)))/(1+np.exp((X_1[i,:]).dot(betas)))
+            if debug:
+                if i%N_printout == 0: 
+                    print("p["+str(i)+"] =", p[i])
+        if debug:
+            print("transpose X_1", np.transpose(X_1))
+            print(np.transpose(X_1).shape)
+        ###print("y-p= ", y-p)
+        #print(y.shape)
+        gradient = (-(np.transpose(X_1))).dot(y-p)
+        #print("gradient =", gradient)
+        #print("betas = ", betas)
+        betas = betas - learning_rate*gradient
+        #print("betas = ", betas)
+        gradient_norm = np.linalg.norm(gradient)
+        ###print("gradient_norm = ", gradient_norm)
+        n_iterations = n_iterations +1
+    print("Converged in "+str(n_iterations)+" iterations.")
+    return betas
+
+
 #set a random seed
 np.random.seed(0)
 
@@ -209,24 +259,12 @@ XTrain, XTest, yTrain, yTest=train_test_split(X_1, y, train_size=trainingShare, 
 
 
 #gradient descent method to estimate betas
-betas = np.random.randn(XTrain.shape[1])
-print(betas.shape)
+
 learning_rate = 1e-5
-epsilon = 100
-gradient_norm = 200
-p = np.zeros((XTrain.shape[0]))
-#print(p)
-#print(y.shape)
-#print(p.shape)
-while gradient_norm > epsilon:      
-    for i in range(XTrain.shape[0]):
-        #print((1+np.exp(X_1[i,:].dot(betas))), end='')
-        p[i] = (np.exp((XTrain[i,:]).dot(betas)))/(1+np.exp((XTrain[i,:]).dot(betas)))
-       # print(p[i])
-    #p = 1/(1+np.exp(-(XTrain).dot(betas)))
-    gradient = (-(np.transpose(XTrain))).dot(yTrain-p)
-    betas = betas - learning_rate*gradient
-    gradient_norm = np.linalg.norm(gradient)
+epsilon = 100    
+
+betas = our_gradient_descent_beta(XTrain, yTrain, epsilon, learning_rate) 
+   
 # =============================================================================
 # print(betas.shape, X_1.shape)
 # print(p.shape)
