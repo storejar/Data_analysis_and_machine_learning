@@ -200,32 +200,79 @@ X_1 = delete_zeros(X_1,10,70,81)
 
 print(pd.DataFrame(X_1))
 
+# Train-test split
+trainingShare = 0.8
+seed  = 1
+XTrain, XTest, yTrain, yTest=train_test_split(X_1, y, train_size=trainingShare, \
+                                              test_size = 1-trainingShare,
+                                             random_state=seed)
+
+
 #gradient descent method to estimate betas
-betas = np.random.randn(X_1.shape[1])
+betas = np.random.randn(XTrain.shape[1])
 print(betas.shape)
-learning_rate = 0.01
-epsilon = 1e-1
-gradient_norm = 1
-p = np.zeros((X_1.shape[0]))
-print(p)
+learning_rate = 1e-5
+epsilon = 100
+gradient_norm = 200
+p = np.zeros((XTrain.shape[0]))
+#print(p)
 #print(y.shape)
 #print(p.shape)
 while gradient_norm > epsilon:      
-    for i in range(X_1.shape[0]):
+    for i in range(XTrain.shape[0]):
         #print((1+np.exp(X_1[i,:].dot(betas))), end='')
-        p[i] = (np.exp((X_1[i,:]).dot(betas)))/(1+np.exp((X_1[i,:]).dot(betas)))
+        p[i] = (np.exp((XTrain[i,:]).dot(betas)))/(1+np.exp((XTrain[i,:]).dot(betas)))
        # print(p[i])
-    gradient = (-(np.transpose(X_1))).dot(y-p)
+    #p = 1/(1+np.exp(-(XTrain).dot(betas)))
+    gradient = (-(np.transpose(XTrain))).dot(yTrain-p)
     betas = betas - learning_rate*gradient
     gradient_norm = np.linalg.norm(gradient)
 # =============================================================================
 # print(betas.shape, X_1.shape)
 # print(p.shape)
+#print(betas)
+    
+# =============================================================================
+# #another code for gradient descent
+# eta = 0.0001 # This is out eta
+# Niteration = 100
+# beta = np.random.randn(XTrain.shape[1])
+# #print(beta)
+# for iter in range(Niteration):
+#     sigmoid = 1/(1+np.exp(-(XTrain)@(beta)))
+#     gradients =  -(np.transpose(XTrain)@(yTrain-sigmoid))
+#     print(gradients)
+#     beta -= eta*gradients
+# #print(beta)
+# sigmoid_a = 1/(1+np.exp(-(XTest)@(beta)))
+# p = np.round(sigmoid_a)
+# 
+# =============================================================================
 
-for i in range(X_1.shape[0]):
-    p[i] = (np.exp((X_1[i,:]).dot(betas)))/(1+np.exp((X_1[i,:]).dot(betas)))
+p = np.zeros((XTest.shape[0]))
+for i in range(XTest.shape[0]):
+    p[i] = (np.exp((XTest[i,:]).dot(betas)))/(1+np.exp((XTest[i,:]).dot(betas)))
 
-print(p, y)
+p = np.round(p)
+# =============================================================================
+# print(p.shape)
+# print(yTest.shape)
+# print(XTest.shape)
+# print(XTrain.shape)
+# print(X_1.shape)
+# =============================================================================
+
+#print(p, yTrain)
+
+
+accuracy_numer=0
+for i in range(p.shape[0]):
+    if p[i] == yTest[i]:
+        accuracy_numer+=1
+accuracy = accuracy_numer/p.shape[0]
+print(accuracy)
+        
+        
 
 # =============================================================================
 # clf = SGDClassifier(loss="log", max_iter=5).fit(X_1, y)
@@ -236,9 +283,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score 
 
 model = LogisticRegression()
-model.fit(X_1, y)
-predicted_classes = model.predict(X_1)
+model.fit(XTrain, yTrain)
+predicted_classes = model.predict(XTest)
 print(predicted_classes)
-accuracy = accuracy_score(y.flatten(),predicted_classes)
+#print(y)
+accuracy = accuracy_score(yTest.flatten(),predicted_classes)
 parameters = model.coef_
 print(accuracy)
