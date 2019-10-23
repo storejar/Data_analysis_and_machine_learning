@@ -316,12 +316,15 @@ p = np.round(p)
 #print(p, yTrain)
 
 
-accuracy_numer=0
-for i in range(p.shape[0]):
-    if p[i] == yTest[i]:
-        accuracy_numer+=1
-accuracy = accuracy_numer/p.shape[0]
-print(accuracy)
+def accuracyscore(p,yTest):
+    accuracy_numer=0
+    for i in range(p.shape[0]):
+        if p[i] == yTest[i]:
+            accuracy_numer+=1
+    accuracy = accuracy_numer/p.shape[0]
+    return accuracy
+            
+acc = accuracyscore(p,yTest)  
         
         
 
@@ -341,3 +344,164 @@ print(predicted_classes)
 accuracy = accuracy_score(yTest.flatten(),predicted_classes)
 parameters = model.coef_
 print(accuracy)
+
+def sigmoid(x):
+    return 1/(1 + np.exp(-x))
+
+from sklearn.metrics import accuracy_score
+
+# one-hot in numpy
+def to_categorical_numpy(integer_vector):
+    n_inputs = len(integer_vector)
+    n_categories = np.max(integer_vector) + 1
+    onehot_vector = np.zeros((n_inputs, n_categories))
+    onehot_vector[range(n_inputs), integer_vector] = 1
+    
+    return onehot_vector
+
+#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)
+Y_train_onehot, Y_test_onehot = to_categorical_numpy(yTrain), to_categorical_numpy(yTest)
+
+# building our neural network
+
+n_inputs, n_features = XTrain.shape
+n_hidden_neurons1 = 50
+n_hidden_neurons2 = 40
+n_hidden_neurons3 = 30
+n_categories = 2
+
+# we make the weights normally distributed using numpy.random.randn
+
+# weights and bias in the hidden layer
+hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+
+hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+
+hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+
+# weights and bias in the output layer
+output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+output_bias = np.zeros(n_categories) + 0.01
+
+def feed_forward(X):
+    # weighted sum of inputs to the hidden layer
+    z_h1 = np.matmul(X, hidden_weights1) + hidden_bias1
+    # activation in the hidden layer
+    a_h1 = sigmoid(z_h1)
+    
+    z_h2 = np.matmul(a_h1, hidden_weights2) + hidden_bias2
+    # activation in the hidden layer
+    a_h2 = sigmoid(z_h2)
+    
+    z_h3 = np.matmul(a_h2, hidden_weights3) + hidden_bias3
+    # activation in the hidden layer
+    a_h3 = sigmoid(z_h3)
+    
+    # weighted sum of inputs to the output layer
+    z_o = np.matmul(a_h3, output_weights) + output_bias
+    # softmax output
+    # axis 0 holds each input and axis 1 the probabilities of each category
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+    
+    return probabilities
+
+probabilities = feed_forward(XTrain)
+print("probabilities = (n_inputs, n_categories) = " + str(probabilities.shape))
+print("probability that image 0 is in category 0,1,2,...,9 = \n" + str(probabilities[0]))
+print("probabilities sum up to: " + str(probabilities[0].sum()))
+print()
+
+# we obtain a prediction by taking the class with the highest likelihood
+def predict(X):
+    probabilities = feed_forward(X)
+    return np.argmax(probabilities, axis=1)
+
+predictions = predict(XTrain)
+print("predictions = (n_inputs) = " + str(predictions.shape))
+print("prediction for image 0: " + str(predictions[0]))
+print("correct label for image 0: " + str(yTrain[0]))
+
+def feed_forward_train(X):
+# weighted sum of inputs to the hidden layer
+    z_h1 = np.matmul(X, hidden_weights1) + hidden_bias1
+    # activation in the hidden layer
+    a_h1 = sigmoid(z_h1)
+    #print(a_h1.shape)
+    
+    z_h2 = np.matmul(a_h1, hidden_weights2) + hidden_bias2
+    # activation in the hidden layer
+    a_h2 = sigmoid(z_h2)
+   # print(a_h2.shape)
+    
+    z_h3 = np.matmul(a_h2, hidden_weights3) + hidden_bias3
+    # activation in the hidden layer
+    a_h3 = sigmoid(z_h3)
+    
+    # weighted sum of inputs to the output layer
+    z_o = np.matmul(a_h3, output_weights) + output_bias
+    # axis 0 holds each input and axis 1 the probabilities of each category
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+    
+    # for backpropagation need activations in hidden and output layers
+    return a_h1, a_h2, a_h3, probabilities
+
+def backpropagation(X, Y):
+    a_h1, a_h2, a_h3, probabilities = feed_forward_train(X)
+
+    
+    # error in the output layer
+    error_output = probabilities - Y
+    # error in the hidden layer
+    error_hidden3 = np.matmul(error_output, output_weights.T) * a_h3 * (1 - a_h3)
+      
+    # gradients for the output layer
+    output_weights_gradient = np.matmul(a_h3.T, error_output)
+    output_bias_gradient = np.sum(error_output, axis=0)
+    
+    # gradient for the hidden layer
+    hidden_weights_gradient3 = np.matmul(a_h2.T, error_hidden3)
+    hidden_bias_gradient3 = np.sum(error_hidden3, axis=0)
+    
+    error_hidden2 = np.matmul(error_hidden3, hidden_weights3.T) * a_h2 * (1 - a_h2)
+    hidden_weights_gradient2 = np.matmul(a_h1.T, error_hidden2)
+    hidden_bias_gradient2 = np.sum(error_hidden2, axis=0)
+    
+    error_hidden1 = np.matmul(error_hidden2, hidden_weights2.T) * a_h1 * (1 - a_h1)
+    hidden_weights_gradient1 = np.matmul(X.T, error_hidden1)
+    hidden_bias_gradient1 = np.sum(error_hidden1, axis=0)
+    
+    return output_weights_gradient, output_bias_gradient, hidden_weights_gradient1, hidden_bias_gradient1,hidden_weights_gradient2, hidden_bias_gradient2,hidden_weights_gradient3, hidden_bias_gradient3
+
+
+print("Old accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
+
+eta = 0.01
+lmbd = 0.01
+for i in range(100):
+    # calculate gradients
+    dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, Y_train_onehot)
+    
+    # regularization term gradients
+    dWo += lmbd * output_weights
+    dWh1 += lmbd * hidden_weights1
+    dWh2 += lmbd * hidden_weights2
+    dWh3 += lmbd * hidden_weights3
+    
+    
+    # update weights and biases
+    output_weights -= eta * dWo
+    output_bias -= eta * dBo
+    hidden_weights1 -= eta * dWh1
+    hidden_bias1 -= eta * dBh1
+    hidden_weights2 -= eta * dWh2
+    hidden_bias2 -= eta * dBh2
+    hidden_weights3 -= eta * dWh3
+    hidden_bias3 -= eta * dBh3
+    
+
+print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
