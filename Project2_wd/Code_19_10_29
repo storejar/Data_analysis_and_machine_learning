@@ -207,11 +207,14 @@ y = np.ravel(y)
 # =============================================================================
 import seaborn as sns
 import matplotlib.pyplot as plt
-correlation_matrix = pd.DataFrame(X).corr().round(1)
+fig1=plt.figure(figsize=(20,15))
 # use the heatmap function from seaborn to plot the correlation matrix
 # annot = True to print the values inside the square
-sns.heatmap(data=correlation_matrix, annot=True)
+sns.heatmap(data=df.corr().round(2), annot=True)
+plt.title(r'Correlation heatmap', fontsize=25)
 plt.show()
+fig1.savefig('corr_matrix.png')
+plt.close()
 
 
 onehotencoder = OneHotEncoder(categories="auto")
