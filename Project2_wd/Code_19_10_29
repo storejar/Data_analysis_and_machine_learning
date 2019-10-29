@@ -521,6 +521,10 @@ test_predict = predict(XTest)
 # =============================================================================
 print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
 
+from sklearn.neural_network import MLPClassifier
+eta_vals = np.logspace(-5, 1, 7)
+lmbd_vals = np.logspace(-5, 1, 
+
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
         for i in range(100):
