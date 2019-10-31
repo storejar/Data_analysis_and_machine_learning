@@ -101,7 +101,15 @@ def stochastic_GD(X_1, y, eta, n, M, n_epochs):
             betas = betas - learning_rate*gradient
     return betas
 
-
+# calculate edges of bins for plotting 2D histogram from used values lmbd_vals
+def calc_edges(lmbd_vals):
+    border=3
+    edges=np.zeros(len(lmbd_vals)+1)
+    edges[0]=border*lmbd_vals[0]/10
+    for i in range(1,len(edges)):
+        edges[i]=border*lmbd_vals[i-1]
+    #print(edges)
+    return edges
 
 
 #set a random seed
@@ -556,6 +564,11 @@ from sklearn.neural_network import MLPClassifier
 eta_vals = np.logspace(-5, 1, 7)
 lmbd_vals = np.logspace(-5, 1, 7)
 
+#make 3 lists for saving histogram values
+list_eta_our=[]
+list_lmbd_our=[]
+list_accur_our=[]
+
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
         for i in range(100):
@@ -587,9 +600,46 @@ for i, eta in enumerate(eta_vals):
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
         print()
+        
+        list_eta_our.append(eta)
+        list_lmbd_our.append(lmbd)
+        list_accur_our.append(accuracy_score(yTest, test_predict))
+        
+        
+#plot histogram        
+edges_lmbd = calc_edges(lmbd_vals)
+edges_eta = calc_edges(eta_vals)
+
+plt.rc('font', size=20)
+fig1=plt.figure(figsize=(12,9))
+fig1, ax1 = plt.subplots(figsize=(12,9))
+h1=plt.hist2d(list_lmbd_our, list_eta_our, weights=list_accur_our, bins=(edges_lmbd,edges_eta))
+ax1.set_aspect("equal")
+hist, xbins, ybins, im = ax1.hist2d(list_lmbd_our, list_eta_our, weights=list_accur_our, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins)-1):
+    for j in range(len(xbins)-1):
+        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h1[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'Accuracy of our code')
+plt.xscale('log')
+plt.yscale('log')
+fig1.savefig('AccuracyVsEtaVsLambda_our.png')
+plt.show()
+plt.close()
+        
+        
 
 # store models for later use - scikit-learn neural network
 DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
+
+#make 3 lists again
+list_eta=[]
+list_lmbd=[]
+list_accur=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
@@ -603,3 +653,36 @@ for i, eta in enumerate(eta_vals):
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", dnn.score(XTest, yTest))
         print()
+        
+        list_eta.append(eta)
+        list_lmbd.append(lmbd)
+        list_accur.append(dnn.score(XTest, yTest))
+        
+        
+#plot histogram
+edges_lmbd = calc_edges(lmbd_vals)
+edges_eta = calc_edges(eta_vals)
+
+plt.rc('font', size=20)
+fig2=plt.figure(figsize=(12,9))
+fig2, ax2 = plt.subplots(figsize=(12,9))
+h2=plt.hist2d(list_lmbd, list_eta, weights=list_accur, bins=(edges_lmbd,edges_eta))
+ax2.set_aspect("equal")
+hist2, xbins2, ybins2, im2 = ax2.hist2d(list_lmbd, list_eta, weights=list_accur, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins2)-1):
+    for j in range(len(xbins2)-1):
+        ax2.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h2[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'Accuracy sklearn')
+plt.xscale('log')
+plt.yscale('log')
+fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
+plt.show()
+plt.close()
+        
+        
+        
