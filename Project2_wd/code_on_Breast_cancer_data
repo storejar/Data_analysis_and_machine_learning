@@ -1,0 +1,411 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov  1 17:01:53 2019
+
+@author: annam
+"""
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+import pandas as pd
+import os
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import SGDClassifier
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
+
+cancer = load_breast_cancer()
+df = pd.DataFrame(cancer.data)
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+fig1=plt.figure(figsize=(20,15))
+sns.heatmap(data=df.corr().round(2), annot=True)
+plt.title(r'Correlation heatmap', fontsize=25)
+plt.show()
+fig1.savefig('corr_matrix.png')
+plt.close()
+
+def our_gradient_descent_beta(X_1, y, epsilon, learning_rate):
+    N_printout = 10000
+    debug = False
+    n_iterations = 0
+    betas=np.ones(X_1.shape[1])*0.001
+    #print(betas.shape)
+    gradient_norm = 2*epsilon
+    p = np.zeros((X_1.shape[0]))
+    #print(p)
+    #print(y.shape)
+    #print(p.shape)
+    while gradient_norm > epsilon:      
+        for i in range(X_1.shape[0]):
+            if debug:
+                if i%N_printout == 0: 
+                    print("multiplication = ", X_1[i,:].dot(betas))
+                if i%N_printout == 0:
+                    print("exp = ", np.exp(X_1[i,:].dot(betas)))
+            p[i] = (np.exp((X_1[i,:]).dot(betas)))/(1+np.exp((X_1[i,:]).dot(betas)))
+            if debug:
+                if i%N_printout == 0: 
+                    print("p["+str(i)+"] =", p[i])
+        if debug:
+            print("transpose X_1", np.transpose(X_1))
+            print(np.transpose(X_1).shape)
+        ###print("y-p= ", y-p)
+        #print(y.shape)
+        gradient = (-(np.transpose(X_1))).dot(y-p)
+        #print("gradient =", gradient)
+        #print("betas = ", betas)
+        betas = betas - learning_rate*gradient
+        #print("betas = ", betas)
+        gradient_norm = np.linalg.norm(gradient)
+        ###print("gradient_norm = ", gradient_norm)
+        n_iterations = n_iterations +1
+    print("Converged in "+str(n_iterations)+" iterations.")
+    return betas
+
+def stochastic_GD(X_1, y, eta, n, M, n_epochs):
+    betas=np.ones(X_1.shape[1])*0.001
+    m = int(n/M)
+    for epoch in range(1,n_epochs+1):
+        for i in range(m):
+            k = np.random.randint(m)
+            xi = X_1[k:k+int(X_1.shape[0]/m)]
+            yi = y[k:k+int(y.shape[0]/m)]
+            p = np.zeros((xi.shape[0]))
+            for i in range(xi.shape[0]):
+                p[i] = (np.exp((xi[i,:]).dot(betas)))/(1+np.exp((xi[i,:]).dot(betas)))
+            gradient = (-(np.transpose(xi))).dot(yi-p)
+            betas = betas - learning_rate*gradient
+    return betas
+
+learning_rate = 1e-5
+epsilon = 100 
+betas = our_gradient_descent_beta(X_train_scaled, y_train,epsilon,learning_rate)
+print(betas)
+
+stoc_betas = stochastic_GD(X_train_scaled, y_train, learning_rate, X_train_scaled.shape[0], 5, 500)
+print(stoc_betas)
+
+p = np.zeros((X_test_scaled.shape[0]))
+for i in range(X_test_scaled.shape[0]):
+    p[i] = (np.exp((X_test_scaled[i,:]).dot(betas)))/(1+np.exp((X_test_scaled[i,:]).dot(betas)))
+
+p = np.round(p)
+
+p_st = np.zeros((X_test_scaled.shape[0]))
+for i in range(X_test_scaled.shape[0]):
+    p_st[i] = (np.exp((X_test_scaled[i,:]).dot(stoc_betas)))/(1+np.exp((X_test_scaled[i,:]).dot(stoc_betas)))
+
+p_st = np.round(p_st)
+
+def accuracyscore(p,yTest):
+    accuracy_numer=0
+    for i in range(p.shape[0]):
+        if p[i] == yTest[i]:
+            accuracy_numer+=1
+    accuracy = accuracy_numer/p.shape[0]
+    return accuracy
+            
+acc = accuracyscore(p,y_test)  
+print(acc)
+acc_st = accuracyscore(p_st,y_test)
+print(acc_st)
+
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+predicted_classes = model.predict(X_test_scaled)
+print(predicted_classes)
+#print(y)
+accuracy = accuracy_score(y_test.flatten(),predicted_classes)
+parameters = model.coef_
+print(accuracy)
+
+def sigmoid(x):
+    return 1/(1 + np.exp(-x))
+
+from sklearn.metrics import accuracy_score
+
+# one-hot in numpy
+def to_categorical_numpy(integer_vector):
+    n_inputs = len(integer_vector)
+    n_categories = np.max(integer_vector) + 1
+    onehot_vector = np.zeros((n_inputs, n_categories))
+    onehot_vector[range(n_inputs), integer_vector] = 1
+    
+    return onehot_vector
+
+#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)
+Y_train_onehot, Y_test_onehot = to_categorical_numpy(y_train), to_categorical_numpy(y_test)
+
+n_inputs, n_features = X_train_scaled.shape
+n_hidden_neurons1 = 50
+n_hidden_neurons2 = 40
+n_hidden_neurons3 = 30
+n_categories = 2
+
+hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+
+hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+
+hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+
+# weights and bias in the output layer
+output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+output_bias = np.zeros(n_categories) + 0.01
+
+def feed_forward(X):
+    # weighted sum of inputs to the hidden layer
+    z_h1 = np.matmul(X, hidden_weights1) + hidden_bias1
+    # activation in the hidden layer
+    a_h1 = sigmoid(z_h1)
+    
+    z_h2 = np.matmul(a_h1, hidden_weights2) + hidden_bias2
+    # activation in the hidden layer
+    a_h2 = sigmoid(z_h2)
+    
+    z_h3 = np.matmul(a_h2, hidden_weights3) + hidden_bias3
+    # activation in the hidden layer
+    a_h3 = sigmoid(z_h3)
+    
+    # weighted sum of inputs to the output layer
+    z_o = np.matmul(a_h3, output_weights) + output_bias
+    # softmax output
+    # axis 0 holds each input and axis 1 the probabilities of each category
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+    
+    return probabilities
+
+probabilities = feed_forward(X_train_scaled)
+print("probabilities = (n_inputs, n_categories) = " + str(probabilities.shape))
+print("probability that x_i is in category 0,1" + str(probabilities[0]))
+print("probabilities sum up to: " + str(probabilities[0].sum()))
+print()
+
+def predict(X):
+    probabilities = feed_forward(X)
+    return np.argmax(probabilities, axis=1)
+
+predictions = predict(X_train_scaled)
+diff = y_train == predictions
+
+def feed_forward_train(X):
+# weighted sum of inputs to the hidden layer
+    z_h1 = np.matmul(X, hidden_weights1) + hidden_bias1
+    # activation in the hidden layer
+    a_h1 = sigmoid(z_h1)
+    #print(a_h1.shape)
+    
+    z_h2 = np.matmul(a_h1, hidden_weights2) + hidden_bias2
+    # activation in the hidden layer
+    a_h2 = sigmoid(z_h2)
+   # print(a_h2.shape)
+    
+    z_h3 = np.matmul(a_h2, hidden_weights3) + hidden_bias3
+    # activation in the hidden layer
+    a_h3 = sigmoid(z_h3)
+    
+    # weighted sum of inputs to the output layer
+    z_o = np.matmul(a_h3, output_weights) + output_bias
+    # axis 0 holds each input and axis 1 the probabilities of each category
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+    
+    # for backpropagation need activations in hidden and output layers
+    return a_h1, a_h2, a_h3, probabilities
+
+def backpropagation(X, Y):
+    a_h1, a_h2, a_h3, probabilities = feed_forward_train(X)
+
+    # error in the output layer
+    error_output = probabilities - Y
+    # error in the hidden layers
+    error_hidden3 = np.matmul(error_output, output_weights.T) * a_h3 * (1 - a_h3)
+    error_hidden2 = np.matmul(error_hidden3, hidden_weights3.T) * a_h2 * (1 - a_h2) 
+    error_hidden1 = np.matmul(error_hidden2, hidden_weights2.T) * a_h1 * (1 - a_h1)
+     
+    # gradients for the output layer
+    output_weights_gradient = np.matmul(a_h3.T, error_output)
+    output_bias_gradient = np.sum(error_output, axis=0)
+    
+    # gradient for the hidden layers
+    hidden_weights_gradient3 = np.matmul(a_h2.T, error_hidden3)
+    hidden_bias_gradient3 = np.sum(error_hidden3, axis=0)
+    
+    
+    hidden_weights_gradient2 = np.matmul(a_h1.T, error_hidden2)
+    hidden_bias_gradient2 = np.sum(error_hidden2, axis=0)
+    
+    
+    hidden_weights_gradient1 = np.matmul(X.T, error_hidden1)
+    hidden_bias_gradient1 = np.sum(error_hidden1, axis=0)
+    
+    return output_weights_gradient, output_bias_gradient, hidden_weights_gradient1, hidden_bias_gradient1,hidden_weights_gradient2, hidden_bias_gradient2,hidden_weights_gradient3, hidden_bias_gradient3
+
+list_eta_our=[]
+list_lmbd_our=[]
+list_accur_our=[]
+list_predictions=[]
+
+eta_vals = np.logspace(-5, 1, 7)
+lmbd_vals = np.logspace(-5, 1, 7)
+
+for i, eta in enumerate(eta_vals):
+    for j, lmbd in enumerate(lmbd_vals):
+        hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+        hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+
+        hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+        hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+
+        hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+        hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+
+# weights and bias in the output layer
+        output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+        output_bias = np.zeros(n_categories) + 0.01
+        
+        for i in range(100):
+            # calculate gradients
+            dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(X_train_scaled, Y_train_onehot)
+            
+            # regularization term gradients
+            dWo += lmbd * output_weights
+            dWh1 += lmbd * hidden_weights1
+            dWh2 += lmbd * hidden_weights2
+            dWh3 += lmbd * hidden_weights3
+            
+            
+            # update weights and biases
+            output_weights -= eta * dWo
+            output_bias -= eta * dBo
+            hidden_weights1 -= eta * dWh1
+            hidden_bias1 -= eta * dBh1
+            hidden_weights2 -= eta * dWh2
+            hidden_bias2 -= eta * dBh2
+            hidden_weights3 -= eta * dWh3
+            hidden_bias3 -= eta * dBh3
+        
+        #DNN_numpy[i][j] = dnn
+        
+        test_predict = predict(X_test_scaled)
+        
+        print("Learning rate  = ", eta)
+        print("Lambda = ", lmbd)
+        print("Accuracy score on test set: ", accuracy_score(y_test, test_predict))
+        print()
+        
+        list_predictions.append(test_predict)
+        list_eta_our.append(eta)
+        list_lmbd_our.append(lmbd)
+        list_accur_our.append(accuracy_score(y_test, test_predict))
+
+def calc_edges(lmbd_vals):
+    border=3
+    edges=np.zeros(len(lmbd_vals)+1)
+    edges[0]=border*lmbd_vals[0]/10
+    for i in range(1,len(edges)):
+        edges[i]=border*lmbd_vals[i-1]
+    #print(edges)
+    return edges
+
+edges_lmbd = calc_edges(lmbd_vals)
+edges_eta = calc_edges(eta_vals)
+
+plt.rc('font', size=20)
+fig1=plt.figure(figsize=(12,9))
+fig1, ax1 = plt.subplots(figsize=(12,9))
+h1=plt.hist2d(list_lmbd_our, list_eta_our, weights=list_accur_our, bins=(edges_lmbd,edges_eta))
+ax1.set_aspect("equal")
+hist, xbins, ybins, im = ax1.hist2d(list_lmbd_our, list_eta_our, weights=list_accur_our, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins)-1):
+    for j in range(len(xbins)-1):
+        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h1[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'Accuracy of our code')
+plt.xscale('log')
+plt.yscale('log')
+fig1.savefig('AccuracyVsEtaVsLambda_our.png')
+plt.show()
+plt.close()  
+
+#cumulative gain plots
+import scikitplot as skplt
+from sklearn.neural_network import MLPClassifier
+skplt.metrics.plot_calibration_curve(y_test, list_predictions)
+plt.show()
+plt.close()
+        
+        
+
+# store models for later use - scikit-learn neural network
+DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
+
+#make 3 lists again
+list_eta=[]
+list_lmbd=[]
+list_accur=[]
+
+for i, eta in enumerate(eta_vals):
+    for j, lmbd in enumerate(lmbd_vals):
+        dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
+                            alpha=lmbd, learning_rate_init=eta, max_iter=100)
+        dnn.fit(X_train_scaled, y_train)
+        
+        DNN_scikit[i][j] = dnn
+        
+        print("Learning rate  = ", eta)
+        print("Lambda = ", lmbd)
+        print("Accuracy score on test set: ", dnn.score(X_test_scaled, y_test))
+        print()
+        
+        list_eta.append(eta)
+        list_lmbd.append(lmbd)
+        list_accur.append(dnn.score(X_test_scaled, y_test))
+        
+        
+#plot histogram
+edges_lmbd = calc_edges(lmbd_vals)
+edges_eta = calc_edges(eta_vals)
+
+plt.rc('font', size=20)
+fig2=plt.figure(figsize=(12,9))
+fig2, ax2 = plt.subplots(figsize=(12,9))
+h2=plt.hist2d(list_lmbd, list_eta, weights=list_accur, bins=(edges_lmbd,edges_eta))
+ax2.set_aspect("equal")
+hist2, xbins2, ybins2, im2 = ax2.hist2d(list_lmbd, list_eta, weights=list_accur, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins2)-1):
+    for j in range(len(xbins2)-1):
+        ax2.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h2[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'Accuracy sklearn')
+plt.xscale('log')
+plt.yscale('log')
+fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
+plt.show()
+plt.close()     
