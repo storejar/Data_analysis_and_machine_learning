@@ -6,6 +6,7 @@ Created on Fri Oct 25 18:08:45 2019
 @author: Ary
 """
 
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -50,8 +51,11 @@ z = FrankeFunction(x, y)
 n = int(len(x))
 z_1 = z +0.01*np.random.randn(n)
 #z_1 = (z_1-np.mean(z_1))/np.std(z_1)
-z_1, z_1=np.meshgrid(z_1, z_1)
-#print(z_1.shape)
+#z_1, z_1=np.meshgrid(z_1, z_1)
+#array = array[:,np.newaxis]
+z_1 = z_1[:,np.newaxis]
+#z_1=z_1.reshape(1000,1)
+print(z_1.shape)
 X= Design_Matrix_X(x,y,n=m)
 DesignMatrix = pd.DataFrame(X)
 print(DesignMatrix.shape)
@@ -62,9 +66,11 @@ XTrain, XTest, yTrain, yTest=train_test_split(X, z_1, train_size=trainingShare, 
                                               test_size = 1-trainingShare,
                                              random_state=seed)
 
+print(yTrain.shape)
+
 n_inputs, n_features = XTrain.shape
 #come scelgo il numero di categorie
-n_categories = 1000
+n_categories = 1
 n_hidden_neurons1 = 50
 n_hidden_neurons2 = 40
 n_hidden_neurons3 = 30
@@ -120,6 +126,10 @@ def feed_forward(X):
     
     # weighted sum of inputs to the output layer
     z_o = np.matmul(a_h3, output_weights) + output_bias
+# =============================================================================
+#     exp_term = np.exp(z_o)
+#     outputs = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+# =============================================================================
     #print(z_o) 
     
     outputs = z_o #is it the right function for output values?
@@ -133,6 +143,7 @@ def predict(X):
 #     print(probabilities)
    # a=np.argmax(outputs, axis=1)
 # =============================================================================
+    #out = (np.sum(outputs, axis=1, keepdims=True))/200
     return outputs
 
 def feed_forward_train(X):
@@ -167,15 +178,23 @@ def feed_forward_train(X):
 
 def backpropagation(X, Y):
     a_h1, a_h2, a_h3, outputs = feed_forward_train(X)
-  
 
     n = Y.shape[0]
     term = outputs - Y
+ #   print(term.shape)
     error_output = (2/n)*term
     
-    error_hidden3 = (np.matmul(error_output, output_weights.T))* a_h3 * (1 - a_h3)
-    error_hidden2 = (np.matmul(error_hidden3, hidden_weights3.T))* a_h2 * (1 - a_h2)
-    error_hidden1 = (np.matmul(error_hidden2, hidden_weights2.T))* a_h1 * (1 - a_h1)
+# =============================================================================
+#     print(error_output.shape)
+#     print(output_weights.T.shape)
+#     print(np.matmul(error_output, output_weights.T).shape)
+#     print(a_h3.shape)
+#   #  print(a_h3.shape)
+# =============================================================================
+    
+    error_hidden3 = np.matmul(error_output, output_weights.T) * a_h3 * (1 - a_h3)
+    error_hidden2 = np.matmul(error_hidden3, hidden_weights3.T) * a_h2 * (1 - a_h2)
+    error_hidden1 = np.matmul(error_hidden2, hidden_weights2.T) * a_h1 * (1 - a_h1)
 
     output_weights_gradient = np.matmul(a_h3.T, error_output)
     output_bias_gradient = np.sum(error_output, axis=0)
@@ -192,9 +211,8 @@ def backpropagation(X, Y):
     return output_weights_gradient, output_bias_gradient, hidden_weights_gradient1, hidden_bias_gradient1,hidden_weights_gradient2, hidden_bias_gradient2,hidden_weights_gradient3, hidden_bias_gradient3
 
 
-
-eta = 0.0001
-lmbd = 0.0001
+eta = 0.1
+lmbd = 0.00001
 for i in range(100):
     # calculate gradients
     dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, yTrain)
@@ -229,7 +247,8 @@ for i in range(100):
 
 #print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
 test_predict = predict(XTest)
-print(test_predict.shape)
+print(test_predict)
+print(yTest.shape)
 #predicted = t_predict[:,0]
 y_values=yTest[:,0] 
 print(y_values.shape)
@@ -330,6 +349,8 @@ plt.close()
 
 eta_vals = np.logspace(-5, 1, 7)
 lmbd_vals = np.logspace(-5, 1, 7)
+print(yTrain.shape)
+print(yTest.shape)
 
 from sklearn.neural_network import MLPRegressor
 
@@ -346,10 +367,10 @@ for i, eta in enumerate(eta_vals):
         
 # =============================================================================
 #         
-#         print("Learning rate  = ", eta)
-#         print("Lambda = ", lmbd)
-#         print("R2 on test set: ", dnn.score(XTest, yTest[:,0]))
-#         print()
+        print("Learning rate  = ", eta)
+        print("Lambda = ", lmbd)
+        print("R2 on test set: ", dnn.score(XTest, yTest[:,0]))
+        print()
 # =============================================================================
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
