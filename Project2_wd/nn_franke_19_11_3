@@ -49,7 +49,7 @@ y = np.random.uniform(0, 1, n_x)
 z = FrankeFunction(x, y)
 
 n = int(len(x))
-z_1 = z +0.01*np.random.randn(n)
+z_1 = z
 #z_1 = (z_1-np.mean(z_1))/np.std(z_1)
 #z_1, z_1=np.meshgrid(z_1, z_1)
 #array = array[:,np.newaxis]
