@@ -15,6 +15,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
+from sklearn import metrics
 
 #discard lines with more than n zeros in column range
 def delete_zeros(X, n, from_column, to_column):
@@ -358,6 +359,14 @@ for i in range(XTest.shape[0]):
     p_st[i] = (np.exp((XTest[i,:]).dot(betas_st)))/(1+np.exp((XTest[i,:]).dot(betas_st)))
 
 p_st = np.round(p_st)
+
+f1_simple_gd, t1_simple_gd, _ = metrics.roc_curve(yTest, p)
+auc1_simple_gd = metrics.roc_auc_score(yTest, p)
+print(auc1_simple_gd)
+
+f1_st_gd, t1_st_gd, _ = metrics.roc_curve(yTest, p_st)
+auc1_st_gd = metrics.roc_auc_score(yTest, p_st)
+print(auc1_st_gd)
 # =============================================================================
 # print(p.shape)
 # print(yTest.shape)
@@ -573,6 +582,7 @@ list_eta_our=[]
 list_lmbd_our=[]
 list_accur_our=[]
 list_predictions=[]
+list_auc_our=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
@@ -613,16 +623,24 @@ for i, eta in enumerate(eta_vals):
         #DNN_numpy[i][j] = dnn
         
         test_predict = predict(XTest)
+        f1_nn, t1_nn, _ = metrics.roc_curve(yTest, test_predict)
+        auc1_nn = metrics.roc_auc_score(yTest, test_predict)
         
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
+        print("AUC score on test set: ", auc1_nn)
         print()
         
         list_predictions.append(test_predict)
         list_eta_our.append(eta)
         list_lmbd_our.append(lmbd)
         list_accur_our.append(accuracy_score(yTest, test_predict))
+        list_auc_our.append(auc1_nn)
+        
+        
+print(max(list_accur_our))
+print(max(list_auc_our))
         
         
 #plot histogram        
@@ -665,6 +683,7 @@ DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 list_eta=[]
 list_lmbd=[]
 list_accur=[]
+list_auc=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
@@ -674,14 +693,23 @@ for i, eta in enumerate(eta_vals):
         
         DNN_scikit[i][j] = dnn
         
+        predictions=dnn.predict(XTest)
+        f1_nn_sl, t1_nn_sl, _ = metrics.roc_curve(yTest, predictions)
+        auc1_nn_sl = metrics.roc_auc_score(yTest, predictions)
+        
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", dnn.score(XTest, yTest))
+        print("AUC score on test set: ", auc1_nn_sl)
         print()
         
         list_eta.append(eta)
         list_lmbd.append(lmbd)
         list_accur.append(dnn.score(XTest, yTest))
+        list_auc.append(auc1_nn_sl)
+
+print(max(list_accur))
+print(max(auc1_nn_sl))
         
         
 #plot histogram
