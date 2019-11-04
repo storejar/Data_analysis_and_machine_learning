@@ -16,6 +16,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
+from sklearn import metrics
 
 cancer = load_breast_cancer()
 df = pd.DataFrame(cancer.data)
@@ -123,6 +124,15 @@ acc = accuracyscore(p,y_test)
 print(acc)
 acc_st = accuracyscore(p_st,y_test)
 print(acc_st)
+
+f1_simple_gd, t1_simple_gd, _ = metrics.roc_curve(y_test,  p)
+auc1_simple_gd = metrics.roc_auc_score(y_test, p)
+
+f1_st_gd, t1_st_gd, _ = metrics.roc_curve(y_test,  p_st)
+auc1_st_gd = metrics.roc_auc_score(y_test, p_st)
+
+print(auc1_simple_gd)
+print(auc1_st_gd)
 
 from sklearn.linear_model import LogisticRegression
 
@@ -264,6 +274,7 @@ list_eta_our=[]
 list_lmbd_our=[]
 list_accur_our=[]
 list_predictions=[]
+list_auc_our=[]
 
 eta_vals = np.logspace(-5, 1, 7)
 lmbd_vals = np.logspace(-5, 1, 7)
@@ -307,16 +318,68 @@ for i, eta in enumerate(eta_vals):
         #DNN_numpy[i][j] = dnn
         
         test_predict = predict(X_test_scaled)
+        f1_nn, t1_nn, _ = metrics.roc_curve(y_test, test_predict)
+        auc1_nn = metrics.roc_auc_score(y_test, test_predict)
         
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", accuracy_score(y_test, test_predict))
+        print("AUC on test set: ", auc1_nn)
         print()
         
         list_predictions.append(test_predict)
         list_eta_our.append(eta)
         list_lmbd_our.append(lmbd)
         list_accur_our.append(accuracy_score(y_test, test_predict))
+        list_auc_our.append(auc1_nn)
+        
+max_acc = max(list_accur_our)
+print(max_acc)
+max_auc = max(list_auc_our)
+print(max_auc)
+
+hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+
+hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+
+hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+
+# weights and bias in the output layer
+output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+output_bias = np.zeros(n_categories) + 0.01
+
+#best combination of eta and lambda from previous loop
+eta = 0.01
+lmbd = 0.00001
+for i in range(100):
+    # calculate gradients
+    dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(X_train_scaled, Y_train_onehot)
+    
+    # regularization term gradients
+    dWo += lmbd * output_weights
+    dWh1 += lmbd * hidden_weights1
+    dWh2 += lmbd * hidden_weights2
+    dWh3 += lmbd * hidden_weights3
+    
+    
+    # update weights and biases
+    output_weights -= eta * dWo
+    output_bias -= eta * dBo
+    hidden_weights1 -= eta * dWh1
+    hidden_bias1 -= eta * dBh1
+    hidden_weights2 -= eta * dWh2
+    hidden_bias2 -= eta * dBh2
+    hidden_weights3 -= eta * dWh3
+    hidden_bias3 -= eta * dBh3
+
+test_predict = predict(X_test_scaled)
+print(test_predict)
+f1_nn, t1_nn, _ = metrics.roc_curve(y_test, test_predict)
+auc1_nn = metrics.roc_auc_score(y_test, test_predict)
+print(auc1_nn)
 
 def calc_edges(lmbd_vals):
     border=3
@@ -359,7 +422,6 @@ plt.show()
 plt.close()
         
         
-
 # store models for later use - scikit-learn neural network
 DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 
@@ -367,6 +429,9 @@ DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 list_eta=[]
 list_lmbd=[]
 list_accur=[]
+list_auc=[]
+
+from sklearn.neural_network import MLPClassifier
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
@@ -375,15 +440,24 @@ for i, eta in enumerate(eta_vals):
         dnn.fit(X_train_scaled, y_train)
         
         DNN_scikit[i][j] = dnn
+        predictions=dnn.predict(X_test_scaled)
+        f1_nn_sl, t1_nn_sl, _ = metrics.roc_curve(y_test, predictions)
+        auc1_nn_sl = metrics.roc_auc_score(y_test, predictions)
         
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("Accuracy score on test set: ", dnn.score(X_test_scaled, y_test))
+        print("AUC score on test set: ", auc1_nn_sl)
         print()
         
         list_eta.append(eta)
         list_lmbd.append(lmbd)
         list_accur.append(dnn.score(X_test_scaled, y_test))
+        list_auc.append(auc1_nn_sl)
+
+max_acc_s = max(list_accur)
+print(max_acc_s)
+print(max(list_auc))
         
         
 #plot histogram
