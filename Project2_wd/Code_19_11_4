@@ -247,7 +247,9 @@ import matplotlib.pyplot as plt
 fig1=plt.figure(figsize=(20,15))
 # use the heatmap function from seaborn to plot the correlation matrix
 # annot = True to print the values inside the square
-sns.heatmap(data=df.corr().round(2), annot=True)
+ax0=sns.heatmap(data=df.corr().round(2), annot=True)
+bottom, top = ax0.get_ylim()
+ax0.set_ylim(bottom + 0.5, top - 0.5)
 plt.title(r'Correlation heatmap', fontsize=25)
 plt.show()
 fig1.savefig('corr_matrix.png')
