@@ -577,6 +577,10 @@ test_predict = predict(XTest)
 # =============================================================================
 print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
 
+from sklearn.neural_network import MLPClassifier
+eta_vals = np.logspace(-5, 1, 7)
+lmbd_vals = np.logspace(-5, 1, 7)
+
 #make 3 lists for saving histogram values
 list_eta_our=[]
 list_lmbd_our=[]
