@@ -672,6 +672,26 @@ fig1.savefig('AccuracyVsEtaVsLambda_our.png')
 plt.show()
 plt.close()
 
+fig11=plt.figure(figsize=(12,9))
+fig11, ax11 = plt.subplots(figsize=(12,9))
+h11=plt.hist2d(list_lmbd_our, list_eta_our, weights=list_auc_our, bins=(edges_lmbd,edges_eta))
+ax11.set_aspect("equal")
+hist, xbins, ybins, im = ax11.hist2d(list_lmbd_our, list_eta_our, weights=list_auc_our, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins)-1):
+    for j in range(len(xbins)-1):
+        ax11.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h11[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'AUC of our code')
+plt.xscale('log')
+plt.yscale('log')
+fig11.savefig('AUCVsEtaVsLambda_our.png')
+plt.show()
+plt.close()
+
 #cumulative gain plots
 import scikitplot as skplt
 skplt.metrics.plot_calibration_curve(yTest, list_predictions)
@@ -713,7 +733,7 @@ for i, eta in enumerate(eta_vals):
         list_auc.append(auc1_nn_sl)
 
 print(max(list_accur))
-print(max(auc1_nn_sl))
+print(max(list_auc))
         
         
 #plot histogram
@@ -738,6 +758,27 @@ plt.title(r'Accuracy sklearn')
 plt.xscale('log')
 plt.yscale('log')
 fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
+plt.show()
+plt.close()
+
+fig21=plt.figure(figsize=(12,9))
+fig21, ax21 = plt.subplots(figsize=(12,9))
+h21=plt.hist2d(list_lmbd, list_eta, weights=list_auc, bins=(edges_lmbd,edges_eta))
+ax21.set_aspect("equal")
+hist2, xbins2, ybins2, im2 = ax21.hist2d(
+list_lmbd, list_eta, weights=list_auc, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins2)-1):
+    for j in range(len(xbins2)-1):
+        ax21.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h21[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'AUC sklearn')
+plt.xscale('log')
+plt.yscale('log')
+fig21.savefig('AUCVsEtaVsLambda_skl.png')
 plt.show()
 plt.close()
         
