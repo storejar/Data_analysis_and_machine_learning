@@ -126,13 +126,14 @@ def feed_forward(X):
     
     # weighted sum of inputs to the output layer
     z_o = np.matmul(a_h3, output_weights) + output_bias
+    a_ho = sigmoid(z_o)
 # =============================================================================
 #     exp_term = np.exp(z_o)
 #     outputs = exp_term / np.sum(exp_term, axis=1, keepdims=True)
 # =============================================================================
     #print(z_o) 
     
-    outputs = z_o #is it the right function for output values?
+    outputs = a_ho #is it the right function for output values?
 
     return outputs
 
@@ -170,19 +171,19 @@ def feed_forward_train(X):
     
     # weighted sum of inputs to the output layer
     z_o = np.matmul(a_h3, output_weights) + output_bias
+    a_ho = sigmoid(z_o)
     # axis 0 holds each input and axis 1 the probabilities of each category
     #print(z_o.shape)
-    outputs = z_o
-    return a_h1, a_h2, a_h3, outputs
-
+    outputs = a_ho
+    return a_h1, a_h2, a_h3, a_ho, outputs
 
 def backpropagation(X, Y):
-    a_h1, a_h2, a_h3, outputs = feed_forward_train(X)
+    a_h1, a_h2, a_h3, a_ho, outputs = feed_forward_train(X)
 
     n = Y.shape[0]
     term = outputs - Y
  #   print(term.shape)
-    error_output = (2/n)*term
+    error_output = ((2/n)*term) * a_ho * (1 - a_ho)
     
 # =============================================================================
 #     print(error_output.shape)
@@ -211,9 +212,13 @@ def backpropagation(X, Y):
     return output_weights_gradient, output_bias_gradient, hidden_weights_gradient1, hidden_bias_gradient1,hidden_weights_gradient2, hidden_bias_gradient2,hidden_weights_gradient3, hidden_bias_gradient3
 
 
-eta = 0.1
-lmbd = 0.00001
-for i in range(100):
+eta = 1
+lmbd = 0.001
+n_epochs=100
+MSE = np.zeros(n_epochs)
+R2 = np.zeros(n_epochs)
+epochs = np.zeros(n_epochs)
+for i in range(n_epochs):
     # calculate gradients
     dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, yTrain)
 
@@ -243,7 +248,22 @@ for i in range(100):
     print(hidden_weights2)
     print(hidden_weights3)
     
+    train_predict = predict(XTrain)
+    MeanSquaredError= mean_squared_error(yTrain, train_predict)
+    MSE[i] = MeanSquaredError
+    R2[i] = r2_score(yTrain, train_predict)
+    epochs[i]=i
     
+fig1=plt.figure(figsize=(12,9))
+plt.plot(epochs, MSE, label='Error')
+plt.plot(epochs, R2, label='R2')
+plt.ylabel(r'MSE')
+plt.xlabel(r'Number of epochs')
+plt.title(r'MSE vs epochs')
+#plt.yscale('log')
+plt.legend()
+plt.show()
+#plt.close()
 
 #print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
 test_predict = predict(XTest)
