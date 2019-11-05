@@ -125,14 +125,40 @@ print(acc)
 acc_st = accuracyscore(p_st,y_test)
 print(acc_st)
 
-f1_simple_gd, t1_simple_gd, _ = metrics.roc_curve(y_test,  p)
+import sklearn.metrics as metrics
 auc1_simple_gd = metrics.roc_auc_score(y_test, p)
-
-f1_st_gd, t1_st_gd, _ = metrics.roc_curve(y_test,  p_st)
-auc1_st_gd = metrics.roc_auc_score(y_test, p_st)
-
 print(auc1_simple_gd)
+
+
+auc1_st_gd = metrics.roc_auc_score(y_test, p_st)
 print(auc1_st_gd)
+
+
+fpr, tpr, threshold = metrics.roc_curve(y_test, p)
+roc_auc = metrics.auc(fpr, tpr)
+import matplotlib.pyplot as plt
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+
+fpr, tpr, threshold = metrics.roc_curve(y_test, p_st)
+roc_auc = metrics.auc(fpr, tpr)
+
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
 
 from sklearn.linear_model import LogisticRegression
 
