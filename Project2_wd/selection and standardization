@@ -1,32 +1,3 @@
-# Reading file into data frame
-cwd = os.getcwd()
-filename = cwd + '/default of credit card clients.xls'
-nanDict = {}
-df = pd.read_excel(filename, header=1, skiprows=0, index_col=0, na_values=nanDict)
-
-df.rename(index=str, columns={"default payment next month": "defaultPaymentNextMonth"}, inplace=True)
-print(df)
-
-# Deleting rows containing wrong values
-sex = [1,2]
-education = [1,2,3,4]
-marriage = [1,2,3]
-payment = [0,1]
-pay = [-2,-1,0,1,2,3,4,5,6,7,8,9]
-
-df = df[df['SEX'].isin(sex)]
-df = df[df['EDUCATION'].isin(education)]
-df = df[df['MARRIAGE'].isin(marriage)]
-df = df[df['defaultPaymentNextMonth'].isin(payment)]
-df = df[df['PAY_0'].isin(pay)]
-df = df[df['PAY_2'].isin(pay)]
-df = df[df['PAY_3'].isin(pay)]
-df = df[df['PAY_4'].isin(pay)]
-df = df[df['PAY_5'].isin(pay)]
-df = df[df['PAY_6'].isin(pay)]
-
-#print(df)
-
 # Standardization
 def standardize(df, label):
     """
@@ -39,28 +10,3 @@ def standardize(df, label):
     stdv = series.std()
     series_standardized = (series - avg)/ stdv
     return series_standardized
-
-df.LIMIT_BAL = standardize(df,"LIMIT_BAL")
-df.AGE = standardize(df,"AGE")
-df.BILL_AMT1 =standardize(df,"BILL_AMT1")
-df.BILL_AMT2 =standardize(df,"BILL_AMT2")
-df.BILL_AMT3 =standardize(df,"BILL_AMT3")
-df.BILL_AMT4 =standardize(df,"BILL_AMT4")
-df.BILL_AMT5 =standardize(df,"BILL_AMT5")
-df.BILL_AMT6 =standardize(df,"BILL_AMT6")
-df.PAY_AMT1 =standardize(df,"PAY_AMT1")
-df.PAY_AMT2 =standardize(df,"PAY_AMT2")
-df.PAY_AMT3 =standardize(df,"PAY_AMT3")
-df.PAY_AMT4 =standardize(df,"PAY_AMT4")
-df.PAY_AMT5 =standardize(df,"PAY_AMT5")
-df.PAY_AMT6 =standardize(df,"PAY_AMT6")
-
-# Replacement of null values
-df = df.replace({'PAY_0': {-2: np.nan, 0: np.nan}})
-df = df.replace({'PAY_2': {-2: np.nan, 0: np.nan}})
-df = df.replace({'PAY_3': {-2: np.nan, 0: np.nan}})
-df = df.replace({'PAY_4': {-2: np.nan, 0: np.nan}})
-df = df.replace({'PAY_5': {-2: np.nan, 0: np.nan}})
-df = df.replace({'PAY_6': {-2: np.nan, 0: np.nan}})
-
-print(df)
