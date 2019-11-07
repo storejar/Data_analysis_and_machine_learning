@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov  1 17:01:53 2019
+Created on Tue Nov  5 18:39:07 2019
 
-@author: annam
+@author: Ary
 """
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_breast_cancer
@@ -17,6 +19,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
 from sklearn import metrics
+import random
+
+#set a random seed
+np.random.seed(0)
 
 cancer = load_breast_cancer()
 df = pd.DataFrame(cancer.data)
@@ -160,6 +166,11 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
 
+conf_matrix_simple_gd = metrics.confusion_matrix(y_test,p)
+conf_matrix_st_gd = metrics.confusion_matrix(y_test,p_st)
+print(conf_matrix_simple_gd)
+print(conf_matrix_st_gd)
+
 from sklearn.linear_model import LogisticRegression
 
 model = LogisticRegression()
@@ -194,18 +205,22 @@ n_hidden_neurons2 = 40
 n_hidden_neurons3 = 30
 n_categories = 2
 
+np.random.seed(0)
 hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
 hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
+np.random.seed(0)
 hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
 hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+np.random.seed(0)
 hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
 hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
-
+np.random.seed(0)
 # weights and bias in the output layer
 output_weights = np.random.randn(n_hidden_neurons3, n_categories)
 output_bias = np.zeros(n_categories) + 0.01
+
+
+
 
 def feed_forward(X):
     # weighted sum of inputs to the hidden layer
@@ -302,24 +317,26 @@ list_accur_our=[]
 list_predictions=[]
 list_auc_our=[]
 
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
+eta_vals = [1e-5,1e-4,1e-3,1e-2,1e-1]
+lmbd_vals = [1e-5,1e-4,1e-3,1e-2,1e-1,1]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
+        np.random.seed(0)       
         hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
         hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
+        np.random.seed(0)
         hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
         hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+        np.random.seed(0)
         hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
         hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
-
-# weights and bias in the output layer
+        np.random.seed(0)
+        # weights and bias in the output layer
         output_weights = np.random.randn(n_hidden_neurons3, n_categories)
         output_bias = np.zeros(n_categories) + 0.01
         
+        print(hidden_weights3)
         for i in range(100):
             # calculate gradients
             dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(X_train_scaled, Y_train_onehot)
@@ -342,7 +359,8 @@ for i, eta in enumerate(eta_vals):
             hidden_bias3 -= eta * dBh3
         
         #DNN_numpy[i][j] = dnn
-        
+        print('-- updated --')
+        print(hidden_weights3)
         test_predict = predict(X_test_scaled)
         f1_nn, t1_nn, _ = metrics.roc_curve(y_test, test_predict)
         auc1_nn = metrics.roc_auc_score(y_test, test_predict)
@@ -364,22 +382,23 @@ print(max_acc)
 max_auc = max(list_auc_our)
 print(max_auc)
 
-hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
-hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
-hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
-hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
-hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
-hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
-
-# weights and bias in the output layer
-output_weights = np.random.randn(n_hidden_neurons3, n_categories)
-output_bias = np.zeros(n_categories) + 0.01
 
 #best combination of eta and lambda from previous loop
+np.random.seed(0)       
+hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+np.random.seed(0)
+hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+np.random.seed(0)
+hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+np.random.seed(0)
+        # weights and bias in the output layer
+output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+output_bias = np.zeros(n_categories) + 0.01
 eta = 0.01
-lmbd = 0.00001
+lmbd = 0.01
 for i in range(100):
     # calculate gradients
     dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(X_train_scaled, Y_train_onehot)
@@ -406,6 +425,11 @@ print(test_predict)
 f1_nn, t1_nn, _ = metrics.roc_curve(y_test, test_predict)
 auc1_nn = metrics.roc_auc_score(y_test, test_predict)
 print(auc1_nn)
+
+conf_matrix_our_nn = metrics.confusion_matrix(y_test,test_predict)
+print(conf_matrix_our_nn)
+
+
 
 def calc_edges(lmbd_vals):
     border=3
@@ -440,6 +464,27 @@ fig1.savefig('AccuracyVsEtaVsLambda_our.png')
 plt.show()
 plt.close()  
 
+plt.rc('font', size=20)
+fig1=plt.figure(figsize=(12,9))
+fig1, ax1 = plt.subplots(figsize=(12,9))
+h1=plt.hist2d(list_lmbd_our, list_eta_our, weights=list_auc_our, bins=(edges_lmbd,edges_eta))
+ax1.set_aspect("equal")
+hist, xbins, ybins, im = ax1.hist2d(list_lmbd_our, list_eta_our, weights=list_auc_our, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins)-1):
+    for j in range(len(xbins)-1):
+        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h1[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'AUC of our code')
+plt.xscale('log')
+plt.yscale('log')
+fig1.savefig('AUCVsEtaVsLambda_our.png')
+plt.show()
+plt.close()  
+
 #cumulative gain plots
 import scikitplot as skplt
 from sklearn.neural_network import MLPClassifier
@@ -462,7 +507,7 @@ from sklearn.neural_network import MLPClassifier
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
         dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
-                            alpha=lmbd, learning_rate_init=eta, max_iter=100)
+                            alpha=lmbd, learning_rate_init=eta, max_iter=100,random_state=0)
         dnn.fit(X_train_scaled, y_train)
         
         DNN_scikit[i][j] = dnn
@@ -484,6 +529,19 @@ for i, eta in enumerate(eta_vals):
 max_acc_s = max(list_accur)
 print(max_acc_s)
 print(max(list_auc))
+
+dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
+                            alpha=0.1, learning_rate_init=0.1, max_iter=100, random_state=0)
+dnn.fit(X_train_scaled, y_train)
+        
+predictions=dnn.predict(X_test_scaled)
+f1_nn_sl, t1_nn_sl, _ = metrics.roc_curve(y_test, predictions)
+auc1_nn_sl = metrics.roc_auc_score(y_test, predictions)
+print(auc1_nn_sl)   
+
+conf_matrix_sl_nn = metrics.confusion_matrix(y_test,predictions)
+print(conf_matrix_sl_nn)
+
         
         
 #plot histogram
@@ -509,4 +567,4 @@ plt.xscale('log')
 plt.yscale('log')
 fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
 plt.show()
-plt.close()     
+plt.close()
