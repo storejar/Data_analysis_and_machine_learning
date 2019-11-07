@@ -452,7 +452,7 @@ hist, xbins, ybins, im = ax1.hist2d(list_lmbd_our, list_eta_our, weights=list_ac
 scale_hist=3 #position of numbers in histogram fields
 for i in range(len(ybins)-1):
     for j in range(len(xbins)-1):
-        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],4), 
                 color="w", ha="center", va="center", fontweight="bold", fontsize=15)
 plt.colorbar(h1[3])
 plt.ylabel(r'Learning rate')
@@ -473,7 +473,7 @@ hist, xbins, ybins, im = ax1.hist2d(list_lmbd_our, list_eta_our, weights=list_au
 scale_hist=3 #position of numbers in histogram fields
 for i in range(len(ybins)-1):
     for j in range(len(xbins)-1):
-        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],2), 
+        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],4), 
                 color="w", ha="center", va="center", fontweight="bold", fontsize=15)
 plt.colorbar(h1[3])
 plt.ylabel(r'Learning rate')
@@ -557,7 +557,7 @@ hist2, xbins2, ybins2, im2 = ax2.hist2d(list_lmbd, list_eta, weights=list_accur,
 scale_hist=3 #position of numbers in histogram fields
 for i in range(len(ybins2)-1):
     for j in range(len(xbins2)-1):
-        ax2.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],2), 
+        ax2.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],4), 
                 color="w", ha="center", va="center", fontweight="bold", fontsize=15)
 plt.colorbar(h2[3])
 plt.ylabel(r'Learning rate')
