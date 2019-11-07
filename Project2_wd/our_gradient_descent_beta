@@ -1,0 +1,37 @@
+def our_gradient_descent_beta(X_1, y, epsilon, learning_rate):
+    N_printout = 10000
+    debug = False
+    n_iterations = 0
+    betas=np.ones(X_1.shape[1])*0.001
+    #print(betas.shape)
+    gradient_norm = 2*epsilon
+    p = np.zeros((X_1.shape[0]))
+    #print(p)
+    #print(y.shape)
+    #print(p.shape)
+    while gradient_norm > epsilon:      
+        for i in range(X_1.shape[0]):
+            if debug:
+                if i%N_printout == 0: 
+                    print("multiplication = ", X_1[i,:].dot(betas))
+                if i%N_printout == 0:
+                    print("exp = ", np.exp(X_1[i,:].dot(betas)))
+            p[i] = (np.exp((X_1[i,:]).dot(betas)))/(1+np.exp((X_1[i,:]).dot(betas)))
+            if debug:
+                if i%N_printout == 0: 
+                    print("p["+str(i)+"] =", p[i])
+        if debug:
+            print("transpose X_1", np.transpose(X_1))
+            print(np.transpose(X_1).shape)
+        ###print("y-p= ", y-p)
+        #print(y.shape)
+        gradient = (-(np.transpose(X_1))).dot(y-p)
+        #print("gradient =", gradient)
+        #print("betas = ", betas)
+        betas = betas - learning_rate*gradient
+        #print("betas = ", betas)
+        gradient_norm = np.linalg.norm(gradient)
+        ###print("gradient_norm = ", gradient_norm)
+        n_iterations = n_iterations +1
+    print("Converged in "+str(n_iterations)+" iterations.")
+    return betas
