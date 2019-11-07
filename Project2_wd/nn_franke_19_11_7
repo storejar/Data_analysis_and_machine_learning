@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 25 18:08:45 2019
+Created on Tue Nov  5 09:29:17 2019
 
 @author: Ary
 """
-
 
 import numpy as np
 import pandas as pd
@@ -43,13 +42,19 @@ def Design_Matrix_X(x, y, n):
 n_x=1000
 m=5
 
+np.random.seed(2204)
 x = np.random.uniform(0, 1, n_x)
+np.random.seed(2204)
 y = np.random.uniform(0, 1, n_x)
+#x, y = np.meshgrid(x,y)
 
-z = FrankeFunction(x, y)
+z = FrankeFunction(x,y)
+
+print(z.shape)
 
 n = int(len(x))
-z_1 = z
+np.random.seed(2204)
+z_1 = z + 0.01*np.random.randn(n)
 #z_1 = (z_1-np.mean(z_1))/np.std(z_1)
 #z_1, z_1=np.meshgrid(z_1, z_1)
 #array = array[:,np.newaxis]
@@ -60,6 +65,7 @@ X= Design_Matrix_X(x,y,n=m)
 DesignMatrix = pd.DataFrame(X)
 print(DesignMatrix.shape)
 
+np.random.seed(2204)
 trainingShare = 0.8
 seed  = 1
 XTrain, XTest, yTrain, yTest=train_test_split(X, z_1, train_size=trainingShare, \
@@ -81,18 +87,18 @@ def relu(X):
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
-
+np.random.seed(2204)
 # weights and bias in the hidden layer
 hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
 hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
 #print(hidden_bias1.shape)
-
+np.random.seed(2204)
 hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
 hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+np.random.seed(2204)
 hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
 hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
-
+np.random.seed(2204)
 # weights and bias in the output layer
 output_weights = np.random.randn(n_hidden_neurons3, n_categories)
 output_bias = np.zeros(n_categories) + 0.01
@@ -177,6 +183,7 @@ def feed_forward_train(X):
     outputs = a_ho
     return a_h1, a_h2, a_h3, a_ho, outputs
 
+
 def backpropagation(X, Y):
     a_h1, a_h2, a_h3, a_ho, outputs = feed_forward_train(X)
 
@@ -213,9 +220,9 @@ def backpropagation(X, Y):
 
 
 eta = 1
-lmbd = 0.001
+lmbd = 0.00001
 n_epochs=100
-MSE = np.zeros(n_epochs)
+MSE_train = np.zeros(n_epochs)
 R2 = np.zeros(n_epochs)
 epochs = np.zeros(n_epochs)
 for i in range(n_epochs):
@@ -249,13 +256,14 @@ for i in range(n_epochs):
     print(hidden_weights3)
     
     train_predict = predict(XTrain)
-    MeanSquaredError= mean_squared_error(yTrain, train_predict)
-    MSE[i] = MeanSquaredError
+    test_predict = predict(XTest)
+    MeanSquaredError_train= mean_squared_error(yTrain, train_predict)
+    MSE_train[i] = MeanSquaredError_train
     R2[i] = r2_score(yTrain, train_predict)
     epochs[i]=i
     
 fig1=plt.figure(figsize=(12,9))
-plt.plot(epochs, MSE, label='Error')
+plt.plot(epochs, MSE_train, label='Error')
 plt.plot(epochs, R2, label='R2')
 plt.ylabel(r'MSE')
 plt.xlabel(r'Number of epochs')
@@ -264,6 +272,7 @@ plt.title(r'MSE vs epochs')
 plt.legend()
 plt.show()
 #plt.close()
+
 
 #print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
 test_predict = predict(XTest)
@@ -277,8 +286,8 @@ print(y_values.shape)
 print("Mean squared error: %.10f" % mean_squared_error(yTest, test_predict))
 print('Variance score: %.10f' % r2_score(yTest, test_predict))
 
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
+eta_vals = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10]
+lmbd_vals = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10]
 
 #make 3 lists for saving histogram values
 list_eta_our=[]
@@ -287,20 +296,20 @@ list_r2_our=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
+        np.random.seed(2204)
         hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
         hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
+        np.random.seed(2204)
         hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
         hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+        np.random.seed(2204)
         hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
         hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
-
-# weights and bias in the output layer
+        np.random.seed(2204)
         output_weights = np.random.randn(n_hidden_neurons3, n_categories)
         output_bias = np.zeros(n_categories) + 0.01
         for i in range(100):
-            # calculate gradients
+                # calculate gradients
             dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, yTrain)
 
             # regularization term gradients
@@ -318,18 +327,19 @@ for i, eta in enumerate(eta_vals):
             hidden_bias2 -= eta * dBh2
             hidden_weights3 -= eta * dWh3
             hidden_bias3 -= eta * dBh3
-            
+                
         test_predict = predict(XTest)
-        
+            
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("R2 score on test set: ", r2_score(yTest, test_predict))
         print()
-        
+            
         list_eta_our.append(eta)
         list_lmbd_our.append(lmbd)
         list_r2_our.append(r2_score(yTest, test_predict))
    
+
 # calculate edges of bins for plotting 2D histogram from used values lmbd_vals
 def calc_edges(lmbd_vals):
     border=3
@@ -367,8 +377,6 @@ plt.close()
     
 
 
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
 print(yTrain.shape)
 print(yTest.shape)
 
@@ -380,7 +388,7 @@ sns.set()
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
-        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3),alpha=lmbd, learning_rate_init=eta, max_iter=100, activation='logistic')
+        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), alpha=lmbd, learning_rate_init=eta, max_iter=100, activation='logistic')
         dnn.fit(XTrain, yTrain[:,0])
         DNN_scikit[i][j] = dnn
         train_accuracy[i][j] = dnn.score(XTest, yTest[:,0])
@@ -397,4 +405,4 @@ sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
 ax.set_title("Training Accuracy")
 ax.set_ylabel("$\eta$")
 ax.set_xlabel("$\lambda$")
-plt.show()   
+plt.show() 
