@@ -1,0 +1,14 @@
+def stochastic_GD(X_1, y, eta, n, M, n_epochs):
+    betas=np.ones(X_1.shape[1])*0.001
+    m = int(n/M)
+    for epoch in range(1,n_epochs+1):
+        for i in range(m):
+            k = np.random.randint(m)
+            xi = X_1[k:k+int(X_1.shape[0]/m)]
+            yi = y[k:k+int(y.shape[0]/m)]
+            p = np.zeros((xi.shape[0]))
+            for i in range(xi.shape[0]):
+                p[i] = (np.exp((xi[i,:]).dot(betas)))/(1+np.exp((xi[i,:]).dot(betas)))
+            gradient = (-(np.transpose(xi))).dot(yi-p)
+            betas = betas - learning_rate*gradient
+    return betas
