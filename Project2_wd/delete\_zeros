@@ -1,0 +1,20 @@
+#discard lines with more than n zeros in column range
+def delete_zeros(X, n, from_column, to_column):
+    #X = np.asmatrix(X)
+    if to_column<=from_column:
+        print("to_column<=from_column!!")
+        return 0
+    if to_column>X.shape[1]:
+        print("to_column>X_columns!!")
+        return 0
+    list_1=[]
+    for row in range(X.shape[0]):
+        n_zeros=0
+        for column in range(from_column,to_column+1):
+            if X.iloc[row, column] == 0:
+                n_zeros+=1
+        if n_zeros > n:
+            list_1.append(row)
+    #print(df.index[list_1])
+    X__ = X.drop(X.index[list_1])  
+    return X__
