@@ -1,0 +1,8 @@
+def accuracyscore(p,yTest):
+    accuracy_numer=0
+    for i in range(p.shape[0]):
+        if p[i] == yTest[i]:
+            accuracy_numer+=1
+    accuracy = accuracy_numer/p.shape[0]
+    return accuracy
+ 
