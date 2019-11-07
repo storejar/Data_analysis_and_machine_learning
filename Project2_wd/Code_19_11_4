@@ -439,16 +439,18 @@ n_categories = 2
 # we make the weights normally distributed using numpy.random.randn
 
 # weights and bias in the hidden layer
+np.random.seed(0)
 hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
 hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
+np.random.seed(0)
 hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
 hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+np.random.seed(0)
 hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
 hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
 
 # weights and bias in the output layer
+np.random.seed(0)
 output_weights = np.random.randn(n_hidden_neurons3, n_categories)
 output_bias = np.zeros(n_categories) + 0.01
 
@@ -546,7 +548,7 @@ def backpropagation(X, Y):
 
 print("Old accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
 
-eta = 0.01
+eta = 0.001
 lmbd = 0.01
 for i in range(100):
     # calculate gradients
@@ -580,8 +582,8 @@ test_predict = predict(XTest)
 print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
 
 from sklearn.neural_network import MLPClassifier
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
+eta_vals = [0.0000001,0.000001,0.00001,0.0001,0.001]
+lmbd_vals = [0.0001,0.001,0.01,0.1,1,10]
 
 #make 3 lists for saving histogram values
 list_eta_our=[]
@@ -592,16 +594,18 @@ list_auc_our=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
+        np.random.seed(0)
         hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
         hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
-
+        np.random.seed(0)
         hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
         hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
-
+        np.random.seed(0)
         hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
         hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
 
 # weights and bias in the output layer
+        np.random.seed(0)
         output_weights = np.random.randn(n_hidden_neurons3, n_categories)
         output_bias = np.zeros(n_categories) + 0.01
         
@@ -713,6 +717,7 @@ list_auc=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
+        np.random.seed(0)
         dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
                             alpha=lmbd, learning_rate_init=eta, max_iter=100)
         dnn.fit(XTrain, yTrain)
