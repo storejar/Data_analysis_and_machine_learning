@@ -171,13 +171,15 @@ conf_matrix_simple_gd = metrics.confusion_matrix(y_test,p)
 conf_matrix_st_gd = metrics.confusion_matrix(y_test,p_st)
 print(conf_matrix_simple_gd)
 print(conf_matrix_st_gd)
+fig7=plt.figure(figsize=(12,9))
+fig8=plt.figure(figsize=(12,9))
 skplt.metrics.plot_confusion_matrix(y_test, p, normalize=True)
 plt.ylim([-0.5, 1.5])
-fig1.savefig('confusion_matrix_simple_gd.png')
+fig7.savefig('confusion_matrix_simple_gd.png')
 plt.show()
 skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
 plt.ylim([-0.5, 1.5])
-fig1.savefig('confusion_matrix_stoc_gd.png')
+fig8.savefig('confusion_matrix_stoc_gd.png')
 plt.show()
 
 from sklearn.linear_model import LogisticRegression
@@ -435,11 +437,12 @@ f1_nn, t1_nn, _ = metrics.roc_curve(y_test, test_predict)
 auc1_nn = metrics.roc_auc_score(y_test, test_predict)
 print(auc1_nn)
 
+fig9=plt.figure(figsize=(12,9))
 conf_matrix_our_nn = metrics.confusion_matrix(y_test,test_predict)
 print(conf_matrix_our_nn)
 skplt.metrics.plot_confusion_matrix(y_test, test_predict, normalize=True)
 plt.ylim([-0.5, 1.5])
-fig1.savefig('confusion_matrix_our_nn.png')
+fig9.savefig('confusion_matrix_our_nn.png')
 plt.show()
 
 
@@ -555,9 +558,10 @@ print(auc1_nn_sl)
 conf_matrix_sl_nn = metrics.confusion_matrix(y_test,predictions)
 print(conf_matrix_sl_nn)
 
+fig10=plt.figure(figsize=(12,9))
 skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
 plt.ylim([-0.5, 1.5])
-fig1.savefig('confusion_matrix_sklearn_nn.png')
+fig10.savefig('confusion_matrix_sklearn_nn.png')
 plt.show()
 
         
