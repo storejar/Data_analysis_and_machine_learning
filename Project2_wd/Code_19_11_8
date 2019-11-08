@@ -232,15 +232,12 @@ every time zero value in PAY is encoded by onehotencoding, put there zero instea
 because we want to work with only good labeled values
 this is made on positions list_bad
 '''
-# =============================================================================
-# 
-# list_bad=[]
-# for i in range(0,6):
-#     list_bad.append(1+10*i)
-#     X[:,1+10*i]=np.zeros(X.shape[0])
-# print(list_bad)
-# 
-# =============================================================================
+
+list_bad=[]
+for i in range(0,6):
+     list_bad.append(1+10*i)
+     X[:,1+10*i]=np.zeros(X.shape[0])
+    print(list_bad)
 
 #build design matrix
 #n_columns = X.shape[1] + 1
