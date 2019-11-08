@@ -1,7 +1,11 @@
 3 datasets have been alanyzed: credit card data, breast cancer data and franke's function
 
-for analysis of credit card data Code file has been used
+for analysis of credit card data Code_x_y_z file has been used
 
-for analysis breast cancer data code_breast_cancer has been used
+for analysis breast cancer data code_on_Breast_cancer_data has been used
 
-for analysis franke's function 
+for analysis franke's function nn_franke_x_y_z has been used
+
+in Latex_link file link to overleaf project report is stored
+
+other files are parts of the code named after the function they contain
