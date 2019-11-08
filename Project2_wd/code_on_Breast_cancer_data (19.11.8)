@@ -563,7 +563,7 @@ conf_matrix_sl_nn = metrics.confusion_matrix(y_test,predictions)
 print(conf_matrix_sl_nn)
 
 fig10=plt.figure(figsize=(12,9))
-skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
+skplt.metrics.plot_confusion_matrix(y_test, predictions, normalize=True)
 plt.ylim([-0.5, 1.5])
 fig10.savefig('confusion_matrix_sklearn_nn.png')
 plt.show()
