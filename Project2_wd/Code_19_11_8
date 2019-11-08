@@ -5,7 +5,6 @@ Created on Sat Nov  2 16:52:12 2019
 
 @author: Ary
 """
-
 import pandas as pd
 import os
 import numpy as np
@@ -16,7 +15,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
 from sklearn import metrics
-
+import scikitplot as skplt
 #discard lines with more than n zeros in column range
 def delete_zeros(X, n, from_column, to_column):
     #X = np.asmatrix(X)
@@ -143,16 +142,6 @@ df = df[df['PAY_6'].isin(pay)]
 
 print(df.shape)
 
-# =============================================================================
-# # Replacement of null values
-# df = df.replace({'PAY_0': {-2: np.nan, 0: np.nan}})
-# df = df.replace({'PAY_2': {-2: np.nan, 0: np.nan}})
-# df = df.replace({'PAY_3': {-2: np.nan, 0: np.nan}})
-# df = df.replace({'PAY_4': {-2: np.nan, 0: np.nan}})
-# df = df.replace({'PAY_5': {-2: np.nan, 0: np.nan}})
-# df = df.replace({'PAY_6': {-2: np.nan, 0: np.nan}})
-# =============================================================================
-
 df = df.replace({'PAY_0': {-2: 0}})
 df = df.replace({'PAY_2': {-2: 0}})
 df = df.replace({'PAY_3': {-2: 0}})
@@ -181,16 +170,7 @@ def standardize(df, label):
     series_standardized = (series - avg)/ stdv
     return series_standardized
 
-# =============================================================================
-# num_col_list = ["LIMIT_BAL","AGE","BILL_AMT1","BILL_AMT2","BILL_AMT3", "BILL_AMT4",
-#                 "BILL_AMT5", "BILL_AMT6","PAY_AMT1","PAY_AMT2","PAY_AMT3","PAY_AMT4",
-#                 "PAY_AMT5","PAY_AMT6"]
-# 
-# for label in num_col_list:
-#     a=label.index
-#     df.a=standardize(df,label)
-# =============================================================================
-    
+
 df = pd.DataFrame(df)
 print(df)
 df.LIMIT_BAL = standardize(df,"LIMIT_BAL")
@@ -216,32 +196,7 @@ print(df)
 X = df.loc[:, df.columns != 'defaultPaymentNextMonth'].values
 y = df.loc[:, df.columns == 'defaultPaymentNextMonth'].values
 y = np.ravel(y)
-# =============================================================================
-# 
-# 
-# list_1=[]
-# for j in range(X.shape[0]):
-#     if X[j,1] != 1 and X[j,1] != 2:
-#         list_1.append(j)
-#         #X=np.delete(X,(j),axis=0) 
-#     if X[j,2] != 1 and X[j,2] != 2 and X[j,2] != 3 and X[j,2] != 4:
-#         list_1.append(j)
-#         #X=np.delete(X,(j),axis=0)
-#     if X[j,3] != 1 and X[j,3] != 2 and X[j,3] != 3:
-#        list_1.append(j)
-#        # X=np.delete(X,(j),axis=0)
-#   
-# X = np.delete(X,list_1,axis=0)     
-#        
-# =============================================================================
-#print(X.shape)
 
-# =============================================================================
-# # Features and targets 
-# X = df.loc[:, df.columns != 'defaultPaymentNextMonth'].values
-# y = df.loc[:, df.columns == 'defaultPaymentNextMonth'].values
-# y = np.ravel(y)
-# =============================================================================
 import seaborn as sns
 import matplotlib.pyplot as plt
 fig1=plt.figure(figsize=(20,15))
@@ -277,31 +232,16 @@ every time zero value in PAY is encoded by onehotencoding, put there zero instea
 because we want to work with only good labeled values
 this is made on positions list_bad
 '''
-
-list_bad=[]
-for i in range(0,6):
-    list_bad.append(1+10*i)
-    X[:,1+10*i]=np.zeros(X.shape[0])
-print(list_bad)
-
-#print(pd.DataFrame(X[:,58:67]))
-
 # =============================================================================
-# def standardize(X, label):
-#     """
-#     standardizes a series with name ``label'' within the pd.DataFrame
-#     ``df''.
-#     """
-#     avg = X[:,label].mean()
-#     stdv = X[:,label].std()
-#     X_standardized = (X[:,label] - avg)/ stdv
-#     return X_standardized
 # 
-# for i in range(9,29):
-#     X[:,i] = standardize(X,i)
+# list_bad=[]
+# for i in range(0,6):
+#     list_bad.append(1+10*i)
+#     X[:,1+10*i]=np.zeros(X.shape[0])
+# print(list_bad)
 # 
-# y.shape
 # =============================================================================
+
 #build design matrix
 #n_columns = X.shape[1] + 1
 #X_1 = np.zeros((X.shape[0],n_columns))
@@ -328,27 +268,6 @@ epsilon = 100
 betas = our_gradient_descent_beta(XTrain, yTrain, epsilon, learning_rate) 
 betas_st = stochastic_GD(XTrain, yTrain, learning_rate, XTrain.shape[0], 5, 500)
    
-# =============================================================================
-# print(betas.shape, X_1.shape)
-# print(p.shape)
-#print(betas)
-    
-# =============================================================================
-# #another code for gradient descent
-# eta = 0.0001 # This is out eta
-# Niteration = 100
-# beta = np.random.randn(XTrain.shape[1])
-# #print(beta)
-# for iter in range(Niteration):
-#     sigmoid = 1/(1+np.exp(-(XTrain)@(beta)))
-#     gradients =  -(np.transpose(XTrain)@(yTrain-sigmoid))
-#     print(gradients)
-#     beta -= eta*gradients
-# #print(beta)
-# sigmoid_a = 1/(1+np.exp(-(XTest)@(beta)))
-# p = np.round(sigmoid_a)
-# 
-# =============================================================================
 
 p = np.zeros((XTest.shape[0]))
 for i in range(XTest.shape[0]):
@@ -369,15 +288,6 @@ print(auc1_simple_gd)
 f1_st_gd, t1_st_gd, _ = metrics.roc_curve(yTest, p_st)
 auc1_st_gd = metrics.roc_auc_score(yTest, p_st)
 print(auc1_st_gd)
-# =============================================================================
-# print(p.shape)
-# print(yTest.shape)
-# print(XTest.shape)
-# print(XTrain.shape)
-# print(X_1.shape)
-# =============================================================================
-
-#print(p, yTrain)
 
 
 def accuracyscore(p,yTest):
@@ -392,12 +302,22 @@ acc = accuracyscore(p,yTest)
 print(acc)
 acc_st = accuracyscore(p_st,yTest)
 print(acc_st)
-        
 
-# =============================================================================
-# clf = SGDClassifier(loss="log", max_iter=5).fit(X_1, y)
-# clf.predict_proba(X_1)  
-# =============================================================================
+fig6=plt.figure(figsize=(12,9))
+fig7=plt.figure(figsize=(12,9))
+conf_matrix_simple_gd = metrics.confusion_matrix(yTest,p)
+conf_matrix_st_gd = metrics.confusion_matrix(yTest,p_st)
+print(conf_matrix_simple_gd)
+print(conf_matrix_st_gd)
+skplt.metrics.plot_confusion_matrix(yTest, p, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig6.savefig('confusion_matrix_simple_gd_CC.png')
+plt.show()
+skplt.metrics.plot_confusion_matrix(yTest, p_st, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig7.savefig('confusion_matrix_stoc_gd_CC.png')
+plt.show()
+        
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score 
@@ -545,42 +465,6 @@ def backpropagation(X, Y):
     
     return output_weights_gradient, output_bias_gradient, hidden_weights_gradient1, hidden_bias_gradient1,hidden_weights_gradient2, hidden_bias_gradient2,hidden_weights_gradient3, hidden_bias_gradient3
 
-
-print("Old accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
-
-eta = 0.001
-lmbd = 0.01
-for i in range(100):
-    # calculate gradients
-    dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, Y_train_onehot)
-    
-    # regularization term gradients
-    dWo += lmbd * output_weights
-    dWh1 += lmbd * hidden_weights1
-    dWh2 += lmbd * hidden_weights2
-    dWh3 += lmbd * hidden_weights3
-    
-    
-    # update weights and biases
-    output_weights -= eta * dWo
-    output_bias -= eta * dBo
-    hidden_weights1 -= eta * dWh1
-    hidden_bias1 -= eta * dBh1
-    hidden_weights2 -= eta * dWh2
-    hidden_bias2 -= eta * dBh2
-    hidden_weights3 -= eta * dWh3
-    hidden_bias3 -= eta * dBh3
-    
-
-print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
-
-test_predict = predict(XTest)
-# =============================================================================
-# print(test_predict.shape)
-# print(yTest.shape)
-# =============================================================================
-print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
-
 from sklearn.neural_network import MLPClassifier
 eta_vals = [0.0000001,0.000001,0.00001,0.0001,0.001]
 lmbd_vals = [0.0001,0.001,0.01,0.1,1,10]
@@ -651,6 +535,69 @@ for i, eta in enumerate(eta_vals):
         
 print(max(list_accur_our))
 print(max(list_auc_our))
+
+print("Old accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
+
+# weights and bias in the hidden layer
+np.random.seed(0)
+hidden_weights1 = np.random.randn(n_features, n_hidden_neurons1)
+hidden_bias1 = np.zeros(n_hidden_neurons1) + 0.01
+np.random.seed(0)
+hidden_weights2 = np.random.randn(n_hidden_neurons1, n_hidden_neurons2)
+hidden_bias2 = np.zeros(n_hidden_neurons2) + 0.01
+np.random.seed(0)
+hidden_weights3 = np.random.randn(n_hidden_neurons2, n_hidden_neurons3)
+hidden_bias3 = np.zeros(n_hidden_neurons3) + 0.01
+
+# weights and bias in the output layer
+np.random.seed(0)
+output_weights = np.random.randn(n_hidden_neurons3, n_categories)
+output_bias = np.zeros(n_categories) + 0.01
+
+eta = 0.0001
+lmbd = 10
+for i in range(100):
+    # calculate gradients
+    dWo, dBo, dWh1, dBh1, dWh2, dBh2, dWh3, dBh3 = backpropagation(XTrain, Y_train_onehot)
+    
+    # regularization term gradients
+    dWo += lmbd * output_weights
+    dWh1 += lmbd * hidden_weights1
+    dWh2 += lmbd * hidden_weights2
+    dWh3 += lmbd * hidden_weights3
+    
+    
+    # update weights and biases
+    output_weights -= eta * dWo
+    output_bias -= eta * dBo
+    hidden_weights1 -= eta * dWh1
+    hidden_bias1 -= eta * dBh1
+    hidden_weights2 -= eta * dWh2
+    hidden_bias2 -= eta * dBh2
+    hidden_weights3 -= eta * dWh3
+    hidden_bias3 -= eta * dBh3
+    
+
+print("New accuracy on training data: " + str(accuracy_score(predict(XTrain), yTrain)))
+
+test_predict = predict(XTest)
+# =============================================================================
+# print(test_predict.shape)
+# print(yTest.shape)
+# =============================================================================
+print("Accuracy score on test set: ", accuracy_score(yTest, test_predict))
+
+fig8=plt.figure(figsize=(12,9))
+f1_nn, t1_nn, _ = metrics.roc_curve(yTest, test_predict)
+auc1_nn = metrics.roc_auc_score(yTest, test_predict)
+print(auc1_nn)
+conf_matrix_our_nn = metrics.confusion_matrix(yTest,test_predict)
+print(conf_matrix_our_nn)
+skplt.metrics.plot_confusion_matrix(yTest, test_predict, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig8.savefig('confusion_matrix_our_nn_CC.png')
+plt.show()
+
         
         
 #plot histogram        
@@ -674,7 +621,7 @@ plt.xlabel(r'Lambda')
 plt.title(r'Accuracy of our code')
 plt.xscale('log')
 plt.yscale('log')
-fig1.savefig('AccuracyVsEtaVsLambda_our.png')
+fig1.savefig('AccuracyVsEtaVsLambda_our_CC.png')
 plt.show()
 plt.close()
 
@@ -694,7 +641,7 @@ plt.xlabel(r'Lambda')
 plt.title(r'AUC of our code')
 plt.xscale('log')
 plt.yscale('log')
-fig11.savefig('AUCVsEtaVsLambda_our.png')
+fig11.savefig('AUCVsEtaVsLambda_our_CC.png')
 plt.show()
 plt.close()
 
@@ -719,7 +666,7 @@ for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
         np.random.seed(0)
         dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
-                            alpha=lmbd, learning_rate_init=eta, max_iter=100)
+                            alpha=lmbd, learning_rate_init=eta, max_iter=100, random_state=0)
         dnn.fit(XTrain, yTrain)
         
         DNN_scikit[i][j] = dnn
@@ -741,7 +688,23 @@ for i, eta in enumerate(eta_vals):
 
 print(max(list_accur))
 print(max(list_auc))
-        
+
+dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
+                            alpha=0.0001, learning_rate_init=0.0001, max_iter=100, random_state=0)
+dnn.fit(XTrain, yTrain)
+predictions=dnn.predict(XTest)
+f1_nn_sl, t1_nn_sl, _ = metrics.roc_curve(yTest, predictions)
+auc1_nn_sl = metrics.roc_auc_score(yTest, predictions)
+print(auc1_nn_sl)
+
+fig9=plt.figure(figsize=(12,9))
+conf_matrix_sklearn_nn = metrics.confusion_matrix(yTest,predictions)
+print(conf_matrix_sklearn_nn)
+skplt.metrics.plot_confusion_matrix(yTest, predictions, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig9.savefig('confusion_matrix_sklearn_nn_CC.png')
+plt.show()
+  
         
 #plot histogram
 edges_lmbd = calc_edges(lmbd_vals)
@@ -764,7 +727,7 @@ plt.xlabel(r'Lambda')
 plt.title(r'Accuracy sklearn')
 plt.xscale('log')
 plt.yscale('log')
-fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
+fig2.savefig('AccuracyVsEtaVsLambda_skl_CC.png')
 plt.show()
 plt.close()
 
@@ -785,10 +748,11 @@ plt.xlabel(r'Lambda')
 plt.title(r'AUC sklearn')
 plt.xscale('log')
 plt.yscale('log')
-fig21.savefig('AUCVsEtaVsLambda_skl.png')
+fig21.savefig('AUCVsEtaVsLambda_skl_CC.png')
 plt.show()
 plt.close()
         
+
         
         
         
