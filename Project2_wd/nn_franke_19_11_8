@@ -398,16 +398,19 @@ fig1.savefig('r2VsEtaVsLambda_our.png')
 plt.show()
 plt.close()   
     
-
-
-print(yTrain.shape)
-print(yTest.shape)
-
 from sklearn.neural_network import MLPRegressor
 
 DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-sns.set()
+#train_r2 = np.zeros((len(eta_vals), len(lmbd_vals)))
+#sns.set()
+
+eta_vals = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10]
+lmbd_vals = [1e-5,1e-4,1e-3,1e-2,1e-1,1,10]
+
+#make 3 lists again
+list_eta=[]
+list_lmbd=[]
+list_r2=[]
 
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
@@ -415,21 +418,38 @@ for i, eta in enumerate(eta_vals):
                            max_iter=100, activation='logistic', random_state=0)
         dnn.fit(XTrain, yTrain[:,0])
         DNN_scikit[i][j] = dnn
-        train_accuracy[i][j] = dnn.score(XTest, yTest[:,0])
-        
+#       train_r2[i][j] = dnn.score(XTest, yTest[:,0])
+        r2_nn_sl=dnn.score(XTest, yTest[:,0])
 # =============================================================================
-#         
+#       
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
         print("R2 on test set: ", dnn.score(XTest, yTest[:,0]))
         print()
+        list_eta.append(eta)
+        list_lmbd.append(lmbd)
+        list_r2.append(r2_nn_sl)
 # =============================================================================
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
+fig21=plt.figure(figsize=(12,9))
+fig21, ax21 = plt.subplots(figsize=(12,9))
+h21=plt.hist2d(list_lmbd, list_eta, weights=list_r2, bins=(edges_lmbd,edges_eta))
+ax21.set_aspect("equal")
+hist2, xbins2, ybins2, im2 = ax21.hist2d(
+list_lmbd, list_eta, weights=list_r2, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins2)-1):
+    for j in range(len(xbins2)-1):
+        ax21.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],4), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h21[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'R2 sklearn')
+plt.xscale('log')
+plt.yscale('log')
+fig21.savefig('R2VsEtaVsLambda_skl_BC.png')
 plt.show()
+plt.close()
 
 dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), alpha=0.0001, learning_rate_init=0.1,
                            max_iter=100, activation='logistic', random_state=0)
@@ -440,3 +460,4 @@ print("Lambda = ", 0.0001)
 print("R2 on test set: ", r2_score(yTest[:,0], predictions))
 print("MSE on test set: ", mean_squared_error(yTest[:,0], predictions))
  
+
