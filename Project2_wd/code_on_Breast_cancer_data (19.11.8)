@@ -172,15 +172,18 @@ conf_matrix_st_gd = metrics.confusion_matrix(y_test,p_st)
 print(conf_matrix_simple_gd)
 print(conf_matrix_st_gd)
 fig7=plt.figure(figsize=(12,9))
-fig8=plt.figure(figsize=(12,9))
 skplt.metrics.plot_confusion_matrix(y_test, p, normalize=True)
 plt.ylim([-0.5, 1.5])
 fig7.savefig('confusion_matrix_simple_gd.png')
 plt.show()
+plt.close()
+
+fig8=plt.figure(figsize=(12,9))
 skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
 plt.ylim([-0.5, 1.5])
 fig8.savefig('confusion_matrix_stoc_gd.png')
 plt.show()
+plt.close()
 
 from sklearn.linear_model import LogisticRegression
 
@@ -444,6 +447,7 @@ skplt.metrics.plot_confusion_matrix(y_test, test_predict, normalize=True)
 plt.ylim([-0.5, 1.5])
 fig9.savefig('confusion_matrix_our_nn.png')
 plt.show()
+plt.close()
 
 
 
@@ -476,7 +480,7 @@ plt.xlabel(r'Lambda')
 plt.title(r'Accuracy of our code')
 plt.xscale('log')
 plt.yscale('log')
-fig1.savefig('AccuracyVsEtaVsLambda_our.png')
+fig1.savefig('AccuracyVsEtaVsLambda_our_BC.png')
 plt.show()
 plt.close()  
 
@@ -497,7 +501,7 @@ plt.xlabel(r'Lambda')
 plt.title(r'AUC of our code')
 plt.xscale('log')
 plt.yscale('log')
-fig1.savefig('AUCVsEtaVsLambda_our.png')
+fig1.savefig('AUCVsEtaVsLambda_our_BC.png')
 plt.show()
 plt.close()  
 
@@ -563,6 +567,7 @@ skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
 plt.ylim([-0.5, 1.5])
 fig10.savefig('confusion_matrix_sklearn_nn.png')
 plt.show()
+plt.close()
 
         
         
@@ -587,6 +592,27 @@ plt.xlabel(r'Lambda')
 plt.title(r'Accuracy sklearn')
 plt.xscale('log')
 plt.yscale('log')
-fig2.savefig('AccuracyVsEtaVsLambda_skl.png')
+fig2.savefig('AccuracyVsEtaVsLambda_skl_BC.png')
+plt.show()
+plt.close()
+
+fig21=plt.figure(figsize=(12,9))
+fig21, ax21 = plt.subplots(figsize=(12,9))
+h21=plt.hist2d(list_lmbd, list_eta, weights=list_auc, bins=(edges_lmbd,edges_eta))
+ax21.set_aspect("equal")
+hist2, xbins2, ybins2, im2 = ax21.hist2d(
+list_lmbd, list_eta, weights=list_auc, bins=(edges_lmbd,edges_eta))
+scale_hist=3 #position of numbers in histogram fields
+for i in range(len(ybins2)-1):
+    for j in range(len(xbins2)-1):
+        ax21.text(scale_hist*xbins2[j],scale_hist*ybins2[i], round(hist2[j,i],4), 
+                color="w", ha="center", va="center", fontweight="bold", fontsize=15)
+plt.colorbar(h21[3])
+plt.ylabel(r'Learning rate')
+plt.xlabel(r'Lambda')
+plt.title(r'AUC sklearn')
+plt.xscale('log')
+plt.yscale('log')
+fig21.savefig('AUCVsEtaVsLambda_skl_BC.png')
 plt.show()
 plt.close()
