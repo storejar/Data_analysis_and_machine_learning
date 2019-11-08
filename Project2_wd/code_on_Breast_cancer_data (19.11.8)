@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov  5 18:39:07 2019
+Created on Fri Nov  8 09:09:43 2019
 
 @author: Ary
 """
@@ -20,6 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
 from sklearn import metrics
 import random
+import scikitplot as skplt
 
 #set a random seed
 np.random.seed(0)
@@ -170,6 +171,14 @@ conf_matrix_simple_gd = metrics.confusion_matrix(y_test,p)
 conf_matrix_st_gd = metrics.confusion_matrix(y_test,p_st)
 print(conf_matrix_simple_gd)
 print(conf_matrix_st_gd)
+skplt.metrics.plot_confusion_matrix(y_test, p, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig1.savefig('confusion_matrix_simple_gd.png')
+plt.show()
+skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig1.savefig('confusion_matrix_stoc_gd.png')
+plt.show()
 
 from sklearn.linear_model import LogisticRegression
 
@@ -428,6 +437,10 @@ print(auc1_nn)
 
 conf_matrix_our_nn = metrics.confusion_matrix(y_test,test_predict)
 print(conf_matrix_our_nn)
+skplt.metrics.plot_confusion_matrix(y_test, test_predict, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig1.savefig('confusion_matrix_our_nn.png')
+plt.show()
 
 
 
@@ -531,7 +544,7 @@ print(max_acc_s)
 print(max(list_auc))
 
 dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons1, n_hidden_neurons2, n_hidden_neurons3), activation='logistic',
-                            alpha=0.1, learning_rate_init=0.1, max_iter=100, random_state=0)
+                            alpha=0.01, learning_rate_init=0.01, max_iter=100, random_state=0)
 dnn.fit(X_train_scaled, y_train)
         
 predictions=dnn.predict(X_test_scaled)
@@ -541,6 +554,11 @@ print(auc1_nn_sl)
 
 conf_matrix_sl_nn = metrics.confusion_matrix(y_test,predictions)
 print(conf_matrix_sl_nn)
+
+skplt.metrics.plot_confusion_matrix(y_test, p_st, normalize=True)
+plt.ylim([-0.5, 1.5])
+fig1.savefig('confusion_matrix_sklearn_nn.png')
+plt.show()
 
         
         
