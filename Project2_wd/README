@@ -1,13 +1,10 @@
 3 datasets have been analyzed: credit card data, breast cancer data and franke's function
 
-for analysis of credit card data Code_x_y_z file has been used
+  - for analysis of credit card data file Code_x_y_z has been used
 
-for analysis of breast cancer data code_on_Breast_cancer_data has been used
+  - for analysis of breast cancer data file code_on_Breast_cancer_data has been used
 
-for analysis of franke's function nn_franke_x_y_z has been used
+  - for analysis of franke's function file nn_franke_x_y_z has been used
 
-in Project2(2).pdf the pdf report file is stored
-
-default of credit card clients.xls is the excel source file of the credit card data
-
-other files are parts of the code named after the function they contain
+Report file is labeled Project2.pdf. Source file for credit card data is called default of credit card clients.xls. 
+Other files contain particular functions of the code expressed by their label.
