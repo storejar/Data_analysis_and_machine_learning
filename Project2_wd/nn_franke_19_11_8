@@ -54,9 +54,6 @@ print(z.shape)
 n = int(len(x))
 np.random.seed(2204)
 z_1 = z + 0.01*np.random.randn(n)
-#z_1 = (z_1-np.mean(z_1))/np.std(z_1)
-#z_1, z_1=np.meshgrid(z_1, z_1)
-#array = array[:,np.newaxis]
 z_1 = z_1[:,np.newaxis]
 #z_1=z_1.reshape(1000,1)
 print(z_1.shape)
@@ -80,8 +77,8 @@ n_hidden_neurons1 = 50
 n_hidden_neurons2 = 40
 n_hidden_neurons3 = 30
 
-def relu(X):
-   return np.maximum(0,X)
+#def relu(X):
+#   return np.maximum(0,X)
 
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
@@ -132,24 +129,14 @@ def feed_forward(X):
     # weighted sum of inputs to the output layer
     z_o = np.matmul(a_h3, output_weights) + output_bias
     a_ho = sigmoid(z_o)
-# =============================================================================
-#     exp_term = np.exp(z_o)
-#     outputs = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-# =============================================================================
-    #print(z_o) 
-    
-    outputs = a_ho #is it the right function for output values?
+
+    outputs = a_ho 
 
     return outputs
 
 
 def predict(X):
     outputs = feed_forward(X)
-# =============================================================================
-#     print(probabilities)
-   # a=np.argmax(outputs, axis=1)
-# =============================================================================
-    #out = (np.sum(outputs, axis=1, keepdims=True))/200
     return outputs
 
 def feed_forward_train(X):
@@ -177,8 +164,6 @@ def feed_forward_train(X):
     # weighted sum of inputs to the output layer
     z_o = np.matmul(a_h3, output_weights) + output_bias
     a_ho = sigmoid(z_o)
-    # axis 0 holds each input and axis 1 the probabilities of each category
-    #print(z_o.shape)
     outputs = a_ho
     return a_h1, a_h2, a_h3, a_ho, outputs
 
