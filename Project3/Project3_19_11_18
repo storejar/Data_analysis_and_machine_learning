@@ -28,6 +28,21 @@ df = pd.read_csv(filename, sep=',', header=0, na_values=nanDict)
 
 print(df.shape)
 
+df = df.replace({'VisitorType': {"Returning_Visitor": 1}})
+df = df.replace({'VisitorType': {"New_Visitor": 2}})
+df = df.replace({'VisitorType': {"Other": 0}})
+
+df = df.replace({'Month': {"Feb": 2}})
+df = df.replace({'Month': {"Mar": 3}})
+df = df.replace({'Month': {"May": 5}})
+df = df.replace({'Month': {"June": 6}})
+df = df.replace({'Month': {"Jul": 7}})
+df = df.replace({'Month': {"Aug": 8}})
+df = df.replace({'Month': {"Sep": 9}})
+df = df.replace({'Month': {"Oct": 10}})
+df = df.replace({'Month': {"Nov": 11}})
+df = df.replace({'Month': {"Dec": 12}})
+
 print(pd.DataFrame(df))
 
 # exploratory data analysis
