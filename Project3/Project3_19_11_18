@@ -28,22 +28,25 @@ df = pd.read_csv(filename, sep=',', header=0, na_values=nanDict)
 
 print(df.shape)
 
-df = df.replace({'VisitorType': {"Returning_Visitor": 1}})
-df = df.replace({'VisitorType': {"New_Visitor": 2}})
-df = df.replace({'VisitorType': {"Other": 0}})
-
-df = df.replace({'Month': {"Feb": 2}})
-df = df.replace({'Month': {"Mar": 3}})
-df = df.replace({'Month': {"May": 5}})
-df = df.replace({'Month': {"June": 6}})
-df = df.replace({'Month': {"Jul": 7}})
-df = df.replace({'Month': {"Aug": 8}})
-df = df.replace({'Month': {"Sep": 9}})
-df = df.replace({'Month': {"Oct": 10}})
-df = df.replace({'Month': {"Nov": 11}})
-df = df.replace({'Month': {"Dec": 12}})
-
 print(pd.DataFrame(df))
+
+# =============================================================================
+# df = df.replace({'VisitorType': {"Returning_Visitor": 1}})
+# df = df.replace({'VisitorType': {"New_Visitor": 2}})
+# df = df.replace({'VisitorType': {"Other": 0}})
+# 
+# df = df.replace({'Month': {"Feb": 2}})
+# df = df.replace({'Month': {"Mar": 3}})
+# df = df.replace({'Month': {"May": 5}})
+# df = df.replace({'Month': {"June": 6}})
+# df = df.replace({'Month': {"Jul": 7}})
+# df = df.replace({'Month': {"Aug": 8}})
+# df = df.replace({'Month': {"Sep": 9}})
+# df = df.replace({'Month': {"Oct": 10}})
+# df = df.replace({'Month': {"Nov": 11}})
+# df = df.replace({'Month': {"Dec": 12}})
+# 
+# =============================================================================
 
 # exploratory data analysis
 
@@ -88,6 +91,7 @@ df.isnull().sum() #counts how many null values there are in each column
 df.dropna(inplace=True) #drops rows with null values in columns and updates the dataframe automatically
 
 print(df)
+df.describe()
 
 # delete rows which contain -1 for duration values
 df_m = np.asmatrix(df)
@@ -139,11 +143,12 @@ print(df)
 
 # we now want to create dummy variabiles for categorical variables.
 # we remove revenue from the design matrix, because it will then become our response variable
-df2 = df.drop(['Revenue','Month'], axis=1)
-#print(df2)
+df2 = df.drop(['Revenue'], axis=1)
+print(df2.columns)
 X = pd.get_dummies(df2,drop_first=True) #drop first drops the first level in order to get k-1 variables starting from k
 
 X.Weekend = X.Weekend.astype(int)
+print(pd.DataFrame(X))
 #print(X.shape)
 #x_1 = np.asmatrix(X)
 #print(pd.DataFrame(x_1[10:17]))
@@ -165,3 +170,96 @@ print(y)
 from sklearn.preprocessing import StandardScaler
 scalar = StandardScaler()
 X = scalar.fit_transform(X)
+df2 = scalar.fit_transform(df2)
+
+fig1=plt.figure(figsize=(20,15))
+# use the heatmap function from seaborn to plot the correlation matrix
+# annot = True to print the values inside the square
+ax0=sns.heatmap(data=df2.corr().round(2), annot=True)
+bottom, top = ax0.get_ylim()
+ax0.set_ylim(bottom + 0.5, top - 0.5)
+plt.title(r'Correlation heatmap', fontsize=25)
+plt.show()
+fig1.savefig('corr_matrix.png')
+plt.close()
+
+# if we want to apply pca we need to transform month and visitor type before applying the algorithm since it works with only numerical data 
+from sklearn.decomposition import PCA
+pca = PCA()
+pca.fit(df2)
+cumsum = np.cumsum(pca.explained_variance_ratio_)
+d = np.argmax(cumsum >= 0.95) + 1
+print(d)
+pca = PCA(n_components=0.95)
+X_reduced = pca.fit_transform(df2)
+print(X_reduced)
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+
+from sklearn.model_selection import train_test_split
+X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X_reduced, y, test_size=0.20, random_state=42)
+
+from sklearn.metrics import confusion_matrix, accuracy_score
+import scikitplot as skplt
+
+# Logistic Regression
+print("\n Building Logistic Regression")
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression()
+model_lr = lr.fit(X_train,y_train)
+y_pred_lr = model_lr.predict(X_test)
+print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
+
+# confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True)
+plt.ylim([-0.5, 1.5])
+plt.show()
+
+# Logistic Regression
+print("\n Building Logistic Regression")
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression()
+model_lr_r = lr.fit(X_train_r,y_train_r)
+y_pred_lr_r = model_lr.predict(X_test_r)
+print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
+
+# confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test_r, y_pred_lr_r, normalize=True)
+plt.ylim([-0.5, 1.5])
+plt.show()
+
+
+# Random Forest
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+y_pred_rf = model.predict(X_test)
+
+# evaluating the model
+print("Training Accuracy :", model.score(X_train, y_train))
+print("Testing Accuracy :", model.score(X_test, y_test))
+
+# confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_rf, normalize=True)
+plt.ylim([-0.5, 1.5])
+plt.show()
+
+# Support Vector Machine
+
+print("\n Building Support Vector Machine")
+from sklearn.svm import SVC
+svc = SVC()
+model = svc.fit(X_train,y_train)
+y_pred_svc = model.predict(X_test)
+print("\n Done")
+print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+
+# confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_svc, normalize=True)
+plt.ylim([-0.5, 1.5])
+plt.show()
+
