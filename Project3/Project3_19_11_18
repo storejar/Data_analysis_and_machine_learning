@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Nov 16 19:09:39 2019
+
+@author: Ary
+"""
+
+import pandas as pd
+import os
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import SGDClassifier
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
+from sklearn import metrics
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+#read data and create a dataframe
+cwd = os.getcwd()
+filename = cwd + '/online_shoppers_intention_3.csv'
+nanDict = {}
+df = pd.read_csv(filename, sep=',', header=0, na_values=nanDict)
+
+print(df.shape)
+
+print(pd.DataFrame(df))
+
+# exploratory data analysis
+
+plt.figure(figsize=(10,10));
+sums = df.Revenue.groupby(df.Month).sum()
+plt.title(r'Revenue by month', fontsize=15)
+plt.pie(sums, labels=sums.index);
+plt.show()
+
+plt.figure(figsize=(6,6));
+sums1 = df.Revenue.groupby(df.VisitorType).sum()
+plt.title(r'Revenue by visitor type', fontsize=15)
+plt.pie(sums1, labels=sums1.index);
+plt.show()
+
+sns.countplot(df['Revenue'])
+plt.title(r'Revenue rate', fontsize=15)
+plt.show()
+
+# =============================================================================
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='ProductRelated_Duration',y='BounceRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# 
+# sns.scatterplot(x='PageValues',y='BounceRates', data=df, hue='Revenue', palette='prism')
+# plt.show()
+# 
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='Informational_Duration',y='BounceRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# 
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='ProductRelated',y='ExitRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# =============================================================================
+
+# data preprocessing
+
+
+df.isnull().sum() #counts how many null values there are in each column
+
+df.dropna(inplace=True) #drops rows with null values in columns and updates the dataframe automatically
+
+print(df)
+
+# delete rows which contain -1 for duration values
+df_m = np.asmatrix(df)
+print(df_m.shape)
+delete_rows = []
+for row in range(df_m.shape[0]):
+    #print(df_m[row,0])
+    if int(df_m[row,0]) == 0:
+        if int(df_m[row,1]) != 0:
+            delete_rows.append(row)
+            first = True 
+    if int(df_m[row,2]) == 0:
+        if int(df_m[row,3]) != 0:
+            first = True 
+            if row in delete_rows:
+                first = False
+            if first == True:
+                delete_rows.append(row)
+    if int(df_m[row,4]) == 0:
+        if int(df_m[row,5]) != 0:
+            first = True 
+            if row in delete_rows:
+                first = False
+            if first == True:
+                delete_rows.append(row)
+    if int(df_m[row,1]) < 0:
+        first = True 
+        if row in delete_rows:
+            first = False
+        if first == True:
+            delete_rows.append(row)
+    if int(df_m[row,3]) < 0:
+        first = True 
+        if row in delete_rows:
+            first = False
+        if first == True:
+            delete_rows.append(row)
+    if int(df_m[row,5]) == -1:
+        first = True 
+        if row in delete_rows:
+            first = False
+        if first == True:
+            delete_rows.append(row)
+a=df.iloc[delete_rows, :]
+list_df=a.index
+df = df.drop(list_df)
+
+print(df)
+
+# we now want to create dummy variabiles for categorical variables.
+# we remove revenue from the design matrix, because it will then become our response variable
+df2 = df.drop(['Revenue','Month'], axis=1)
+#print(df2)
+X = pd.get_dummies(df2,drop_first=True) #drop first drops the first level in order to get k-1 variables starting from k
+
+X.Weekend = X.Weekend.astype(int)
+#print(X.shape)
+#x_1 = np.asmatrix(X)
+#print(pd.DataFrame(x_1[10:17]))
+X.head()
+print(X.shape)
+y = df['Revenue']
+print(y.shape)
+# =============================================================================
+# df_m=np.delete(df_m, delete_rows, axis=0)
+# print(df_m.shape)
+# print(pd.DataFrame(df_m))
+# =============================================================================
+
+
+y = y.astype(int) #consider y now as a dummy variable
+print(y)
+
+
+from sklearn.preprocessing import StandardScaler
+scalar = StandardScaler()
+X = scalar.fit_transform(X)
