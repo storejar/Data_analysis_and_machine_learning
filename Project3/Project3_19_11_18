@@ -18,6 +18,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sklearn.metrics as metrics
 
 
 #read data and create a dataframe
@@ -186,13 +187,14 @@ plt.close()
 # if we want to apply pca we need to transform month and visitor type before applying the algorithm since it works with only numerical data 
 from sklearn.decomposition import PCA
 pca = PCA()
-pca.fit(df2)
+pca.fit(X)
 cumsum = np.cumsum(pca.explained_variance_ratio_)
 d = np.argmax(cumsum >= 0.95) + 1
 print(d)
 pca = PCA(n_components=0.95)
-X_reduced = pca.fit_transform(df2)
+X_reduced = pca.fit_transform(X)
 print(X_reduced)
+
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
@@ -210,6 +212,7 @@ lr = LogisticRegression()
 model_lr = lr.fit(X_train,y_train)
 y_pred_lr = model_lr.predict(X_test)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True)
@@ -223,6 +226,7 @@ lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
 y_pred_lr_r = model_lr.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test_r, y_pred_lr_r, normalize=True)
@@ -240,6 +244,8 @@ model.fit(X_train, y_train)
 y_pred_rf = model.predict(X_test)
 
 # evaluating the model
+print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_rf))
+print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_rf)*100)
 print("Training Accuracy :", model.score(X_train, y_train))
 print("Testing Accuracy :", model.score(X_test, y_test))
 
@@ -257,6 +263,8 @@ model = svc.fit(X_train,y_train)
 y_pred_svc = model.predict(X_test)
 print("\n Done")
 print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_svc, normalize=True)
