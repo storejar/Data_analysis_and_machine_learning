@@ -305,13 +305,43 @@ plt.show()
 
 import xgboost as xgb
 
-xg_clf = xgb.XGBClassifier()
-xg_clf.fit(X_train, y_train)
+l_rate =[0.0001, 0.001, 0.01, 0.1, 0.3, 1]
+n_trees = [10, 50, 100, 200, 500, 1000]
+l_acc=[]
+for rate in l_rate:
+    for tree in n_trees:
+        np.random.seed(42)          
+        xg_clf = xgb.XGBClassifier(eta=rate, n_estimators=tree, random_state=42)
+        xg_clf.fit(X_train, y_train)
+            
+        y_pred_xg = xg_clf.predict(X_test)
+            
+        print("learning rate:", rate)
+        print("number of trees:", tree)
+        print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
+        l_acc.append(xg_clf.score(X_test,y_test))
 
+print(max(l_acc))
+
+xg_clf = xgb.XGBClassifier(n_estimators=100, random_state=42)
+xg_clf.fit(X_train,y_train)
+
+print(X_test)
 y_pred_xg = xg_clf.predict(X_test)
+print(y_pred_xg)
 
-print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(xg_clf.score(X_test,y_test)))
+print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
 
+# =============================================================================
+# xg_clf = xgb.XGBClassifier(learning_rate=0.00001, n_estimators=1, random_state=42)
+# xg_clf.fit(X_train,y_train)
+# 
+# y_pred_xg = xg_clf.predict(X_test)
+# xg_clf.score(X_test,y_pred_xg)
+# 
+# print("Test set accuracy with Random Forests and scaled data: {:.4f}".format(xg_clf.score(X_test,y_pred_xg)))
+# 
+# =============================================================================
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_xg, normalize=True)
 plt.ylim([-0.5, 1.5])
