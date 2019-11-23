@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-
 #read data and create a dataframe
 cwd = os.getcwd()
 filename = cwd + '/online_shoppers_intention_3.csv'
@@ -171,7 +170,7 @@ print(y)
 from sklearn.preprocessing import StandardScaler
 scalar = StandardScaler()
 X = scalar.fit_transform(X)
-df2 = scalar.fit_transform(df2)
+#df2 = scalar.fit_transform(df2)
 
 fig1=plt.figure(figsize=(20,15))
 # use the heatmap function from seaborn to plot the correlation matrix
@@ -195,7 +194,6 @@ pca = PCA(n_components=0.95)
 X_reduced = pca.fit_transform(X)
 print(X_reduced)
 
-
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
 
@@ -212,7 +210,6 @@ lr = LogisticRegression()
 model_lr = lr.fit(X_train,y_train)
 y_pred_lr = model_lr.predict(X_test)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
-print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True)
@@ -226,7 +223,6 @@ lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
 y_pred_lr_r = model_lr.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
-print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test_r, y_pred_lr_r, normalize=True)
@@ -238,16 +234,33 @@ plt.show()
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
+list_n_trees=[]
+list_accur=[]
+for n_trees in range(10,1010,100):
+    model = RandomForestClassifier(n_estimators=n_trees, random_state=42)
+    model.fit(X_train, y_train)
+    
+    y_pred_rf = model.predict(X_test)
+    
+    # evaluating the model
+    print("Number of trees:", n_trees)
+    print("Training Accuracy :", model.score(X_train, y_train))
+    print("Testing Accuracy :", model.score(X_test, y_test))
+    
+    list_n_trees.append(n_trees)
+    list_accur.append(model.score(X_test, y_test))
 
-y_pred_rf = model.predict(X_test)
-
-# evaluating the model
-print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_rf))
-print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_rf)*100)
-print("Training Accuracy :", model.score(X_train, y_train))
-print("Testing Accuracy :", model.score(X_test, y_test))
+best_acc = max(list_accur)
+print(best_acc)
+    
+fig1=plt.figure(figsize=(12,9))
+plt.plot(list_n_trees, list_accur, label='Accuracy')
+plt.ylabel(r'Accuracy')
+plt.xlabel(r'Number of trees')
+plt.title(r'Accuracy vs number of trees')
+plt.yscale('log')
+plt.legend()
+plt.show()
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_rf, normalize=True)
@@ -257,17 +270,49 @@ plt.show()
 # Support Vector Machine
 
 print("\n Building Support Vector Machine")
-from sklearn.svm import SVC
-svc = SVC()
-model = svc.fit(X_train,y_train)
-y_pred_svc = model.predict(X_test)
-print("\n Done")
-print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+C = [0.001, 0.1, 1, 10, 100] #C large means being close to a hard classifier
 
+list_c=[]
+list_acc_svm = []
+from sklearn.svm import SVC
+for c in C:
+    svc = SVC(C=c)
+    model = svc.fit(X_train,y_train)
+    y_pred_svc = model.predict(X_test)
+    print("\n C value", c)
+    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+    
+    list_acc_svm.append(accuracy_score(y_test,y_pred_svc))
+    list_c.append(c)
+    
+print(max(list_acc_svm))
+
+fig2=plt.figure(figsize=(12,9))
+plt.plot(list_c, list_acc_svm, label='Accuracy')
+plt.ylabel(r'Accuracy')
+plt.xlabel(r'C values')
+plt.title(r'Accuracy vs c values')
+plt.yscale('log')
+plt.legend()
+plt.show()
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_svc, normalize=True)
 plt.ylim([-0.5, 1.5])
 plt.show()
 
+#XGboost
+
+import xgboost as xgb
+
+xg_clf = xgb.XGBClassifier()
+xg_clf.fit(X_train, y_train)
+
+y_pred_xg = xg_clf.predict(X_test)
+
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(xg_clf.score(X_test,y_test)))
+
+# confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_xg, normalize=True)
+plt.ylim([-0.5, 1.5])
+plt.show()
