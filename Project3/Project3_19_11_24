@@ -228,7 +228,7 @@ print("\n Building Logistic Regression")
 from sklearn.linear_model import LogisticRegression
 lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
-y_pred_lr_r = model_lr.predict(X_test_r)
+y_pred_lr_r = model_lr_r.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
 print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
 print (time.time()-t0,"seconds process time")
@@ -389,15 +389,65 @@ for rate in l_rate:
 
 print(max(l_acc))
 
-xg_clf = xgb.XGBClassifier(n_estimators=100, random_state=42)
-xg_clf.fit(X_train,y_train)
+# study xgboost and consider the possibility for early stopping due to overfitting
+
+xg_clf = xgb.XGBClassifier(n_estimators=500, random_state=42)
+eval_set = [(X_train, y_train), (X_test, y_test)]
+xg_clf.fit(X_train, y_train, eval_metric=["error", "logloss"], eval_set=eval_set, verbose=True)
 
 print(X_test)
 y_pred_xg = xg_clf.predict(X_test)
-print(y_pred_xg)
+predictions = [round(value) for value in y_pred_xg]
 
 print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
 
+results = xg_clf.evals_result()
+epochs = len(results['validation_0']['error'])
+x_axis = range(0, epochs)
+
+from matplotlib import pyplot
+# plot log loss
+fig, ax = pyplot.subplots()
+ax.plot(x_axis, results['validation_0']['logloss'], label='Train')
+ax.plot(x_axis, results['validation_1']['logloss'], label='Test')
+ax.legend()
+pyplot.ylabel('Log Loss')
+pyplot.title('XGBoost Log Loss')
+pyplot.show()
+# plot classification error
+fig, ax = pyplot.subplots()
+ax.plot(x_axis, results['validation_0']['error'], label='Train')
+ax.plot(x_axis, results['validation_1']['error'], label='Test')
+ax.legend()
+pyplot.ylabel('Classification Error')
+pyplot.title('XGBoost Classification Error')
+pyplot.show()
+# since overfitting tendencies are not totally clear (at least before number of epochs=60, it's not necessary)
+
+# we can try to fit the model allowing for early stopping when the loss over a range of 10 epochs starts increasing too much
+
+# fit model no training data
+xg1_clf = xgb.XGBClassifier(n_estimators=500, random_state=42)
+eval_set = [(X_test, y_test)]
+xg1_clf.fit(X_train, y_train, early_stopping_rounds=10, eval_metric="logloss", eval_set=eval_set, verbose=True)
+# make predictions for test data
+y_pred = xg1_clf.predict(X_test)
+predictions = [round(value) for value in y_pred]
+# evaluate predictions
+accuracy = accuracy_score(y_test, predictions)
+
+#best iteration is 92, early stopping because overfitting is observed after 90-100 epochs (best seen if we increase the number of estimators(=epochs) to 500)
+
+#having 92 estimators we get the best result in terms of loss function
+xg_clf = xgb.XGBClassifier(n_estimators=92, random_state=42)
+xg_clf.fit(X_train, y_train)
+
+y_pred_xg = xg_clf.predict(X_test)
+predictions = [round(value) for value in y_pred_xg]
+
+print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
+
+#no clear tendency of overfitting is observed
 # =============================================================================
 # xg_clf = xgb.XGBClassifier(learning_rate=0.00001, n_estimators=1, random_state=42)
 # xg_clf.fit(X_train,y_train)
