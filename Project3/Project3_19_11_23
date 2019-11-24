@@ -18,6 +18,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 
 
 #read data and create a dataframe
@@ -203,26 +204,34 @@ X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X_reduced, y, test_s
 from sklearn.metrics import confusion_matrix, accuracy_score
 import scikitplot as skplt
 
+
 # Logistic Regression
+t0 = time.time()
 print("\n Building Logistic Regression")
 from sklearn.linear_model import LogisticRegression
 lr = LogisticRegression()
 model_lr = lr.fit(X_train,y_train)
 y_pred_lr = model_lr.predict(X_test)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
+print (time.time()-t0,"seconds process time")
+
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True)
 plt.ylim([-0.5, 1.5])
 plt.show()
 
-# Logistic Regression
+# Logistic Regression after PCA
+t0 = time.time()
 print("\n Building Logistic Regression")
 from sklearn.linear_model import LogisticRegression
 lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
 y_pred_lr_r = model_lr.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
+print (time.time()-t0,"seconds process time")
 
 # confusion matrix
 skplt.metrics.plot_confusion_matrix(y_test_r, y_pred_lr_r, normalize=True)
@@ -234,9 +243,24 @@ plt.show()
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
+t0 = time.time()
+print("\n Building Random Forest Model")
+# Random Forest
+model_rf_classi = RandomForestClassifier()
+model_rf = model_rf_classi.fit(X_train,y_train)
+y_pred_enrf = model_rf.predict(X_test)
+print("\n Done")
+print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_enrf))
+print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_enrf)*100)
+print("Training Accuracy :", model_rf.score(X_train, y_train))
+print("Testing Accuracy :", model_rf.score(X_test, y_test))
+print (time.time()-t0,"seconds process time")
+
+
 list_n_trees=[]
 list_accur=[]
 for n_trees in range(10,1010,100):
+    t0 = time.time()
     model = RandomForestClassifier(n_estimators=n_trees, random_state=42)
     model.fit(X_train, y_train)
     
@@ -246,6 +270,9 @@ for n_trees in range(10,1010,100):
     print("Number of trees:", n_trees)
     print("Training Accuracy :", model.score(X_train, y_train))
     print("Testing Accuracy :", model.score(X_test, y_test))
+    print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_rf))
+    print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_rf)*100)
+    print (time.time()-t0,"seconds process time")
     
     list_n_trees.append(n_trees)
     list_accur.append(model.score(X_test, y_test))
@@ -268,6 +295,45 @@ plt.ylim([-0.5, 1.5])
 plt.show()
 
 # Support Vector Machine
+
+# Support Vector Machine
+print("\n MODEL BUILDING")
+
+t0= time.time()
+print("\n Building Support Vector Machine")
+from sklearn.svm import SVC
+svc = SVC()
+model = svc.fit(X_train,y_train)
+y_pred_svc = model.predict(X_test)
+print("\n Done")
+print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+print (time.time()-t0,"seconds process time")
+
+for c in (0.001,0.01,0.1,1,10,100):
+    svc = SVC(C=c)
+    model = svc.fit(X_train,y_train)
+    y_pred_svc = model.predict(X_test)
+    print("\n C:",c)
+    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+
+for ker in ('linear', 'rbf', 'poly'):
+    svc = SVC(kernel=ker)
+    model = svc.fit(X_train,y_train)
+    y_pred_svc = model.predict(X_test)
+    print("\n Kernel:",ker)
+    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+
+for g in (0.01,0.1,1,10):
+    svc = SVC(gamma=g)
+    model = svc.fit(X_train,y_train)
+    y_pred_svc = model.predict(X_test)
+    print("\n gamma:",g)
+    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+
 
 print("\n Building Support Vector Machine")
 C = [0.001, 0.1, 1, 10, 100] #C large means being close to a hard classifier
