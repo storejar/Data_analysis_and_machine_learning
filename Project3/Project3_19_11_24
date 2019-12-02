@@ -333,6 +333,22 @@ for g in (0.01,0.1,1,10):
     print("\n gamma:",g)
     print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+    
+list_accur=[]   
+for ker in ('linear', 'rbf', 'poly'):
+    for c in (0.1,1,10):
+        for g in (0.01,0.1):
+            svc = SVC(gamma=g,kernel=ker,C=c)
+            model = svc.fit(X_train,y_train)
+            y_pred_svc = model.predict(X_test)
+            print("\n Kernel:",ker)
+            print("\n C:",c)
+            print("\n gamma:",g)
+            print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+            print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+            list_accur.append((accuracy(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
+
+print(list_accur)
 
 
 print("\n Building Support Vector Machine")
@@ -465,11 +481,20 @@ plt.show()
 
 #Need to rerun all the methods with the best selected parameters before the plot
 
+svc = SVC(gamma=0.1,kernel='rbf',C=10)
+model = svc.fit(X_train,y_train)
+y_pred_svc = model.predict(X_test)
+
 fpr_svc, tpr_svc, threshold = metrics.roc_curve(y_test,y_pred_svc)
 roc_auc_svc = metrics.auc(fpr_svc, tpr_svc)
 
 fpr_lr, tpr_lr, threshold = metrics.roc_curve(y_test,y_pred_lr)
 roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
+
+#random forest with 100 trees
+model_rf_classi = RandomForestClassifier(n_estimators=100)
+model_rf = model_rf_classi.fit(X_train,y_train)
+y_pred_enrf = model_rf.predict(X_test)
 
 fpr_enrf, tpr_enrf, threshold = metrics.roc_curve(y_test,y_pred_enrf)
 roc_auc_enrf = metrics.auc(fpr_enrf, tpr_enrf)
