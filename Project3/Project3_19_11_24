@@ -462,3 +462,31 @@ print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_t
 skplt.metrics.plot_confusion_matrix(y_test, y_pred_xg, normalize=True)
 plt.ylim([-0.5, 1.5])
 plt.show()
+
+#Need to rerun all the methods with the best selected parameters before the plot
+
+fpr_svc, tpr_svc, threshold = metrics.roc_curve(y_test,y_pred_svc)
+roc_auc_svc = metrics.auc(fpr_svc, tpr_svc)
+
+fpr_lr, tpr_lr, threshold = metrics.roc_curve(y_test,y_pred_lr)
+roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
+
+fpr_enrf, tpr_enrf, threshold = metrics.roc_curve(y_test,y_pred_enrf)
+roc_auc_enrf = metrics.auc(fpr_enrf, tpr_enrf)
+
+fpr_xg, tpr_xg, threshold = metrics.roc_curve(y_test,y_pred_xg)
+roc_auc_xg = metrics.auc(fpr_xg, tpr_xg)
+
+import matplotlib.pyplot as plt
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr_svc, tpr_svc, 'b', label = 'AUC = %0.2f SVC' % roc_auc_svc,color="g")
+plt.plot(fpr_lr, tpr_lr, 'b', label = 'AUC = %0.2f LR' % roc_auc_lr)
+plt.plot(fpr_xg, tpr_xg, 'b', label = 'AUC = %0.2f XG' % roc_auc_xg,color="y")
+plt.plot(fpr_enrf, tpr_enrf, 'b', label = 'AUC = %0.2f RF' % roc_auc_enrf,color="r")
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
