@@ -155,6 +155,7 @@ print(pd.DataFrame(X))
 #x_1 = np.asmatrix(X)
 #print(pd.DataFrame(x_1[10:17]))
 X.head()
+columnsNamesArr = X.columns.values
 print(X.shape)
 y = df['Revenue']
 print(y.shape)
@@ -172,7 +173,8 @@ print(y)
 from sklearn.preprocessing import StandardScaler
 scalar = StandardScaler()
 X = scalar.fit_transform(X)
-#df2 = scalar.fit_transform(df2)
+X = pd.DataFrame(X)
+X.columns = columnsNamesArr
 
 fig1=plt.figure(figsize=(20,15))
 # use the heatmap function from seaborn to plot the correlation matrix
