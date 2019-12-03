@@ -19,6 +19,7 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
+import shap
 
 
 #read data and create a dataframe
@@ -495,6 +496,13 @@ roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
 model_rf_classi = RandomForestClassifier(n_estimators=100)
 model_rf = model_rf_classi.fit(X_train,y_train)
 y_pred_enrf = model_rf.predict(X_test)
+
+#shap index for random forest
+explainer = shap.TreeExplainer(model_rf)
+shap_values = explainer.shap_values(X_test)
+
+shap.summary_plot(shap_values[1], X_test, plot_type = 'bar')
+shap.summary_plot(shap_values[1], X_test)
 
 fpr_enrf, tpr_enrf, threshold = metrics.roc_curve(y_test,y_pred_enrf)
 roc_auc_enrf = metrics.auc(fpr_enrf, tpr_enrf)
