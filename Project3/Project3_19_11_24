@@ -459,7 +459,9 @@ accuracy = accuracy_score(y_test, predictions)
 
 #having 92 estimators we get the best result in terms of loss function
 xg_clf = xgb.XGBClassifier(n_estimators=92, random_state=42)
-xg_clf.fit(X_train, y_train)
+xg_model=xg_clf.fit(X_train, y_train)
+xgb.plot_importance(xg_model)
+plt.show()
 
 y_pred_xg = xg_clf.predict(X_test)
 predictions = [round(value) for value in y_pred_xg]
