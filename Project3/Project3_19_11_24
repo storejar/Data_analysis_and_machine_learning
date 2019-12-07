@@ -216,7 +216,7 @@ lr = LogisticRegression()
 model_lr = lr.fit(X_train,y_train)
 y_pred_lr = model_lr.predict(X_test)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
-print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
+print("\n AUC of Logistic Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
 print (time.time()-t0,"seconds process time")
 
 
@@ -233,7 +233,7 @@ lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
 y_pred_lr_r = model_lr_r.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
-print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
+print("\n AUC of Logistic Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
 print (time.time()-t0,"seconds process time")
 
 # confusion matrix
@@ -253,7 +253,7 @@ model_rf_classi = RandomForestClassifier()
 model_rf = model_rf_classi.fit(X_train,y_train)
 y_pred_enrf = model_rf.predict(X_test)
 print("\n Done")
-print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_enrf))
+print("\n Accuracy of Random Forest: ",accuracy_score(y_test,y_pred_enrf))
 print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_enrf)*100)
 print("Training Accuracy :", model_rf.score(X_train, y_train))
 print("Testing Accuracy :", model_rf.score(X_test, y_test))
@@ -273,7 +273,7 @@ for n_trees in range(10,1010,100):
     print("Number of trees:", n_trees)
     print("Training Accuracy :", model.score(X_train, y_train))
     print("Testing Accuracy :", model.score(X_test, y_test))
-    print("\n Accuracy of Random Forest: ",accuracy(y_test,y_pred_rf))
+    print("\n Accuracy of Random Forest: ",accuracy_score(y_test,y_pred_rf))
     print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_rf)*100)
     print (time.time()-t0,"seconds process time")
     
@@ -309,7 +309,7 @@ svc = SVC()
 model = svc.fit(X_train,y_train)
 y_pred_svc = model.predict(X_test)
 print("\n Done")
-print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
 print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
 print (time.time()-t0,"seconds process time")
 
@@ -318,7 +318,7 @@ for c in (0.001,0.01,0.1,1,10,100):
     model = svc.fit(X_train,y_train)
     y_pred_svc = model.predict(X_test)
     print("\n C:",c)
-    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
 
 for ker in ('linear', 'rbf', 'poly'):
@@ -326,7 +326,7 @@ for ker in ('linear', 'rbf', 'poly'):
     model = svc.fit(X_train,y_train)
     y_pred_svc = model.predict(X_test)
     print("\n Kernel:",ker)
-    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
 
 for g in (0.01,0.1,1,10):
@@ -334,7 +334,7 @@ for g in (0.01,0.1,1,10):
     model = svc.fit(X_train,y_train)
     y_pred_svc = model.predict(X_test)
     print("\n gamma:",g)
-    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
     
 list_accur=[]   
@@ -347,9 +347,9 @@ for ker in ('linear', 'rbf', 'poly'):
             print("\n Kernel:",ker)
             print("\n C:",c)
             print("\n gamma:",g)
-            print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+            print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
             print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-            list_accur.append((accuracy(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
+            list_accur.append((accuracy_score(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
 
 print(list_accur)
 
