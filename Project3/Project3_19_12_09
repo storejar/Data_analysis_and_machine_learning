@@ -5,7 +5,6 @@ Created on Sat Nov 16 19:09:39 2019
 
 @author: Ary
 """
-
 import pandas as pd
 import os
 import numpy as np
@@ -32,6 +31,24 @@ print(df.shape)
 
 print(pd.DataFrame(df))
 
+# =============================================================================
+# df = df.replace({'VisitorType': {"Returning_Visitor": 1}})
+# df = df.replace({'VisitorType': {"New_Visitor": 2}})
+# df = df.replace({'VisitorType': {"Other": 0}})
+# 
+# df = df.replace({'Month': {"Feb": 2}})
+# df = df.replace({'Month': {"Mar": 3}})
+# df = df.replace({'Month': {"May": 5}})
+# df = df.replace({'Month': {"June": 6}})
+# df = df.replace({'Month': {"Jul": 7}})
+# df = df.replace({'Month': {"Aug": 8}})
+# df = df.replace({'Month': {"Sep": 9}})
+# df = df.replace({'Month': {"Oct": 10}})
+# df = df.replace({'Month': {"Nov": 11}})
+# df = df.replace({'Month': {"Dec": 12}})
+# 
+# =============================================================================
+
 # exploratory data analysis
 
 plt.figure(figsize=(10,10));
@@ -50,14 +67,34 @@ sns.countplot(df['Revenue'])
 plt.title(r'Revenue rate', fontsize=15)
 plt.show()
 
+print(df)
+df.describe()
+
+# =============================================================================
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='ProductRelated_Duration',y='BounceRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# 
+# sns.scatterplot(x='PageValues',y='BounceRates', data=df, hue='Revenue', palette='prism')
+# plt.show()
+# 
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='Informational_Duration',y='BounceRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# 
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.scatterplot(x='ProductRelated',y='ExitRates', data=df, hue='Revenue',palette='prism')
+# plt.show()
+# =============================================================================
+
 # data preprocessing
+
 
 df.isnull().sum() #counts how many null values there are in each column
 
 df.dropna(inplace=True) #drops rows with null values in columns and updates the dataframe automatically
 
-print(df)
-df.describe()
+
 
 # delete rows which contain -1 for duration values
 df_m = np.asmatrix(df)
@@ -123,8 +160,16 @@ columnsNamesArr = X.columns.values
 print(X.shape)
 y = df['Revenue']
 print(y.shape)
+# =============================================================================
+# df_m=np.delete(df_m, delete_rows, axis=0)
+# print(df_m.shape)
+# print(pd.DataFrame(df_m))
+# =============================================================================
+
+
 y = y.astype(int) #consider y now as a dummy variable
 print(y)
+
 
 from sklearn.preprocessing import StandardScaler
 scalar = StandardScaler()
@@ -143,7 +188,6 @@ plt.show()
 fig1.savefig('corr_matrix.png')
 plt.close()
 
-# if we want to apply pca we need to transform month and visitor type before applying the algorithm since it works with only numerical data 
 from sklearn.decomposition import PCA
 pca = PCA()
 pca.fit(X)
@@ -168,11 +212,11 @@ import scikitplot as skplt
 t0 = time.time()
 print("\n Building Logistic Regression")
 from sklearn.linear_model import LogisticRegression
-lr = LogisticRegression()
+lr = LogisticRegression(random_state=42)
 model_lr = lr.fit(X_train,y_train)
 y_pred_lr = model_lr.predict(X_test)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
-print("\n AUC of Logistic Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
 print (time.time()-t0,"seconds process time")
 
 
@@ -189,7 +233,7 @@ lr = LogisticRegression()
 model_lr_r = lr.fit(X_train_r,y_train_r)
 y_pred_lr_r = model_lr_r.predict(X_test_r)
 print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test_r,y_pred_lr_r))
-print("\n AUC of Logistic Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
+print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test_r,y_pred_lr_r)*100)
 print (time.time()-t0,"seconds process time")
 
 # confusion matrix
@@ -218,7 +262,9 @@ print (time.time()-t0,"seconds process time")
 
 list_n_trees=[]
 list_accur=[]
-for n_trees in range(10,1010,100):
+list_auc_rf=[]
+n_trees_l=[1,10,100,500,1000,2000]
+for n_trees in n_trees_l:
     t0 = time.time()
     model = RandomForestClassifier(n_estimators=n_trees, random_state=42)
     model.fit(X_train, y_train)
@@ -229,16 +275,30 @@ for n_trees in range(10,1010,100):
     print("Number of trees:", n_trees)
     print("Training Accuracy :", model.score(X_train, y_train))
     print("Testing Accuracy :", model.score(X_test, y_test))
-    print("\n Accuracy of Random Forest: ",accuracy_score(y_test,y_pred_rf))
+    print("\n Accuracy of Random Forest (i.e. test acc): ",accuracy_score(y_test,y_pred_rf))
     print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_rf)*100)
     print (time.time()-t0,"seconds process time")
     
     list_n_trees.append(n_trees)
     list_accur.append(model.score(X_test, y_test))
+    list_auc_rf.append(metrics.roc_auc_score(y_test,y_pred_rf)*100)
 
 best_acc = max(list_accur)
 print(best_acc)
-    
+print(max(list_auc_rf))
+
+# Random Forest with 100 trees - accuracy is better, AUC is better for 2000 trees but it does not differ much from the 100 one, we stick with that
+t0 = time.time()
+model_rf_classi = RandomForestClassifier(n_estimators=100, random_state=42)
+model_rf = model_rf_classi.fit(X_train,y_train)
+y_pred_enrf = model_rf.predict(X_test)
+print("\n Done")
+print("\n Accuracy of Random Forest: ",accuracy_score(y_test,y_pred_enrf))
+print("\n AUC of Random Forest: ",metrics.roc_auc_score(y_test,y_pred_enrf)*100)
+print("Training Accuracy :", model_rf.score(X_train, y_train))
+print("Testing Accuracy :", model_rf.score(X_test, y_test))
+print (time.time()-t0,"seconds process time")
+
 fig1=plt.figure(figsize=(12,9))
 plt.plot(list_n_trees, list_accur, label='Accuracy')
 plt.ylabel(r'Accuracy')
@@ -249,7 +309,7 @@ plt.legend()
 plt.show()
 
 # confusion matrix
-skplt.metrics.plot_confusion_matrix(y_test, y_pred_rf, normalize=True)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_enrf, normalize=True)
 plt.ylim([-0.5, 1.5])
 plt.show()
 
@@ -261,43 +321,47 @@ print("\n MODEL BUILDING")
 t0= time.time()
 print("\n Building Support Vector Machine")
 from sklearn.svm import SVC
-svc = SVC()
-model = svc.fit(X_train,y_train)
-y_pred_svc = model.predict(X_test)
-print("\n Done")
-print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-print (time.time()-t0,"seconds process time")
-
-for c in (0.001,0.01,0.1,1,10,100):
-    svc = SVC(C=c)
-    model = svc.fit(X_train,y_train)
-    y_pred_svc = model.predict(X_test)
-    print("\n C:",c)
-    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-
-for ker in ('linear', 'rbf', 'poly'):
-    svc = SVC(kernel=ker)
-    model = svc.fit(X_train,y_train)
-    y_pred_svc = model.predict(X_test)
-    print("\n Kernel:",ker)
-    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-
-for g in (0.01,0.1,1,10):
-    svc = SVC(gamma=g)
-    model = svc.fit(X_train,y_train)
-    y_pred_svc = model.predict(X_test)
-    print("\n gamma:",g)
-    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-    
-list_accur=[]   
+# =============================================================================
+# svc = SVC()
+# model = svc.fit(X_train,y_train)
+# y_pred_svc = model.predict(X_test)
+# print("\n Done")
+# print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+# print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+# print (time.time()-t0,"seconds process time")
+# 
+# for c in (0.001,0.01,0.1,1,10,100):
+#     svc = SVC(C=c)
+#     model = svc.fit(X_train,y_train)
+#     y_pred_svc = model.predict(X_test)
+#     print("\n C:",c)
+#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+# 
+# for ker in ('linear', 'rbf', 'poly'):
+#     svc = SVC(kernel=ker)
+#     model = svc.fit(X_train,y_train)
+#     y_pred_svc = model.predict(X_test)
+#     print("\n Kernel:",ker)
+#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+# 
+# for g in (0.01,0.1,1,10):
+#     svc = SVC(gamma=g)
+#     model = svc.fit(X_train,y_train)
+#     y_pred_svc = model.predict(X_test)
+#     print("\n gamma:",g)
+#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+#     
+# =============================================================================
+list_accur_svm=[]   
+list_auc_svm=[]
+list_c=[]
 for ker in ('linear', 'rbf', 'poly'):
     for c in (0.1,1,10):
         for g in (0.01,0.1):
-            svc = SVC(gamma=g,kernel=ker,C=c)
+            svc = SVC(kernel=ker, C=c, gamma=g, random_state=42)
             model = svc.fit(X_train,y_train)
             y_pred_svc = model.predict(X_test)
             print("\n Kernel:",ker)
@@ -305,31 +369,40 @@ for ker in ('linear', 'rbf', 'poly'):
             print("\n gamma:",g)
             print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
             print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-            list_accur.append((accuracy_score(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
+            list_accur_svm.append((accuracy_score(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
+            list_auc_svm.append(metrics.roc_auc_score(y_test,y_pred_svc)*100)
+            list_c.append(c)
+            
+print(max(list_accur_svm))
+print(max(list_auc_svm))
 
-print(list_accur)
+#the best parameter combination is c=10, gamma=0.1 and kernel=rbf, based on AUC (accuracy is one of the highest anyway)
+svc = SVC(kernel='rbf', C=10, gamma=0.1, random_state=42)
+model = svc.fit(X_train,y_train)
+y_pred_svc_best = model.predict(X_test)
 
-
-print("\n Building Support Vector Machine")
-C = [0.001, 0.1, 1, 10, 100] #C large means being close to a hard classifier
-
-list_c=[]
-list_acc_svm = []
-from sklearn.svm import SVC
-for c in C:
-    svc = SVC(C=c)
-    model = svc.fit(X_train,y_train)
-    y_pred_svc = model.predict(X_test)
-    print("\n C value", c)
-    print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-    
-    list_acc_svm.append(accuracy_score(y_test,y_pred_svc))
-    list_c.append(c)
-    
-print(max(list_acc_svm))
+# =============================================================================
+# print("\n Building Support Vector Machine")
+# C = [0.001, 0.1, 1, 10, 100] #C large means being close to a hard classifier
+# 
+# list_c=[]
+# list_acc_svm = []
+# from sklearn.svm import SVC
+# for c in C:
+#     svc = SVC(C=c)
+#     model = svc.fit(X_train,y_train)
+#     y_pred_svc = model.predict(X_test)
+#     print("\n C value", c)
+#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+#     
+#     list_acc_svm.append(accuracy_score(y_test,y_pred_svc))
+#     list_c.append(c)
+#     
+# print(max(list_acc_svm))
+# =============================================================================
 
 fig2=plt.figure(figsize=(12,9))
-plt.plot(list_c, list_acc_svm, label='Accuracy')
+plt.plot(list_c, list_accur_svm, label='Accuracy')
 plt.ylabel(r'Accuracy')
 plt.xlabel(r'C values')
 plt.title(r'Accuracy vs c values')
@@ -338,7 +411,7 @@ plt.legend()
 plt.show()
 
 # confusion matrix
-skplt.metrics.plot_confusion_matrix(y_test, y_pred_svc, normalize=True)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred_svc_best, normalize=True)
 plt.ylim([-0.5, 1.5])
 plt.show()
 
@@ -348,7 +421,8 @@ import xgboost as xgb
 
 l_rate =[0.0001, 0.001, 0.01, 0.1, 0.3, 1]
 n_trees = [10, 50, 100, 200, 500, 1000]
-l_acc=[]
+l_acc_xg=[]
+l_auc_xg=[]
 for rate in l_rate:
     for tree in n_trees:
         np.random.seed(42)          
@@ -359,11 +433,16 @@ for rate in l_rate:
             
         print("learning rate:", rate)
         print("number of trees:", tree)
-        print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
-        l_acc.append(xg_clf.score(X_test,y_test))
+        print("Test set accuracy:", xg_clf.score(X_test,y_test))
+        print("\n AUC of XGBoost: ",metrics.roc_auc_score(y_test,y_pred_xg)*100)
+        l_acc_xg.append(xg_clf.score(X_test,y_test))
+        l_auc_xg.append(metrics.roc_auc_score(y_test,y_pred_xg)*100)
 
-print(max(l_acc))
+print(max(l_acc_xg))
+print(max(l_auc_xg))
 
+#learning rate doesn't matter that much, the only parameter making big changes is the number of trees and the best result is obtained with 100
+ 
 # study xgboost and consider the possibility for early stopping due to overfitting
 
 xg_clf = xgb.XGBClassifier(n_estimators=500, random_state=42)
@@ -374,7 +453,8 @@ print(X_test)
 y_pred_xg = xg_clf.predict(X_test)
 predictions = [round(value) for value in y_pred_xg]
 
-print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
+print("Test set accuracy:", xg_clf.score(X_test,y_test))
+
 
 results = xg_clf.evals_result()
 epochs = len(results['validation_0']['error'])
@@ -413,7 +493,7 @@ accuracy = accuracy_score(y_test, predictions)
 
 #best iteration is 92, early stopping because overfitting is observed after 90-100 epochs (best seen if we increase the number of estimators(=epochs) to 500)
 
-#having 92 estimators we get the best result in terms of loss function
+#having 92 estimators we get the best result in terms of loss function, learning rate is 0.3 by default
 xg_clf = xgb.XGBClassifier(n_estimators=92, random_state=42)
 xg_model=xg_clf.fit(X_train, y_train)
 xgb.plot_importance(xg_model)
@@ -423,7 +503,7 @@ y_pred_xg = xg_clf.predict(X_test)
 predictions = [round(value) for value in y_pred_xg]
 
 print("Test set accuracy with Random Forests and scaled data:", xg_clf.score(X_test,y_test))
-
+print("\n AUC of XGBoost: ",metrics.roc_auc_score(y_test,y_pred_xg)*100)
 #no clear tendency of overfitting is observed
 # =============================================================================
 # xg_clf = xgb.XGBClassifier(learning_rate=0.00001, n_estimators=1, random_state=42)
@@ -442,6 +522,7 @@ plt.show()
 
 #Need to rerun all the methods with the best selected parameters before the plot
 
+#best combination by looking at AUC values
 svc = SVC(gamma=0.1,kernel='rbf',C=10)
 model = svc.fit(X_train,y_train)
 y_pred_svc = model.predict(X_test)
@@ -460,9 +541,21 @@ y_pred_enrf = model_rf.predict(X_test)
 #shap index for random forest
 explainer = shap.TreeExplainer(model_rf)
 shap_values = explainer.shap_values(X_test)
+#print(shap_values)
 
-shap.summary_plot(shap_values[1], X_test, plot_type = 'bar')
-shap.summary_plot(shap_values[1], X_test)
+shap.summary_plot(shap_values, X_test, plot_type = 'bar')
+shap.summary_plot(shap_values, X_test)
+
+
+#shap index for XGBoost
+explainer = shap.TreeExplainer(xg_model)
+shap_values = explainer.shap_values(X_test)
+#print(shap_values.shape)
+
+shap.summary_plot(shap_values, X_test, plot_type = 'bar')
+shap.summary_plot(shap_values, X_test)
+
+
 
 fpr_enrf, tpr_enrf, threshold = metrics.roc_curve(y_test,y_pred_enrf)
 roc_auc_enrf = metrics.auc(fpr_enrf, tpr_enrf)
