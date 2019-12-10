@@ -537,6 +537,12 @@ time_xg= time.time()-t0
                             
 fpr_xg, tpr_xg, threshold = metrics.roc_curve(y_test,y_pred_xg)
 roc_auc_xg = metrics.auc(fpr_xg, tpr_xg)
+                            
+# Time
+print("Logistic regression:",time_lr,"seconds process time")
+print("Support Vector Classifier:",time_svc,"seconds process time")
+print("Random forest:",time_rf,"seconds process time")
+print("XGBoost:",time_xg,"seconds process time")
 
 import matplotlib.pyplot as plt
 plt.title('Receiver Operating Characteristic')
@@ -559,7 +565,7 @@ shap_values = explainer.shap_values(X_test)
 #print(shap_values)
 
 shap.summary_plot(shap_values, X_test, plot_type = 'bar')
-shap.summary_plot(shap_values, X_test)   
+shap.summary_plot(shap_values[1], X_test)   
                             
 # importance for XGBoost
 xgb.plot_importance(xg_model)
