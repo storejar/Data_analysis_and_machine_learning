@@ -474,8 +474,6 @@ accuracy = accuracy_score(y_test, predictions)
 #having 92 estimators we get the best result in terms of loss function, learning rate is 0.3 by default
 xg_clf = xgb.XGBClassifier(n_estimators=92, random_state=42)
 xg_model=xg_clf.fit(X_train, y_train)
-xgb.plot_importance(xg_model)
-plt.show()
 
 y_pred_xg = xg_clf.predict(X_test)
 predictions = [round(value) for value in y_pred_xg]
@@ -501,43 +499,42 @@ plt.show()
 #Need to rerun all the methods with the best selected parameters before the plot
 
 #best combination by looking at AUC values
+t0 = time.time()                            
 svc = SVC(gamma=0.1,kernel='rbf',C=10)
 model = svc.fit(X_train,y_train)
 y_pred_svc = model.predict(X_test)
+time_svc= time.time()-t0                            
 
 fpr_svc, tpr_svc, threshold = metrics.roc_curve(y_test,y_pred_svc)
 roc_auc_svc = metrics.auc(fpr_svc, tpr_svc)
 
+# Logistic regression
+t0 = time.time()                            
+lr = LogisticRegression()
+model_lr = lr.fit(X_train,y_train)
+y_pred_lr = model_lr.predict(X_test)
+time_lr= time.time()-t0                             
+                            
 fpr_lr, tpr_lr, threshold = metrics.roc_curve(y_test,y_pred_lr)
 roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
 
 #random forest with 100 trees
+t0 = time.time()                            
 model_rf_classi = RandomForestClassifier(n_estimators=100)
 model_rf = model_rf_classi.fit(X_train,y_train)
 y_pred_enrf = model_rf.predict(X_test)
-
-#shap index for random forest
-explainer = shap.TreeExplainer(model_rf)
-shap_values = explainer.shap_values(X_test)
-#print(shap_values)
-
-shap.summary_plot(shap_values, X_test, plot_type = 'bar')
-shap.summary_plot(shap_values, X_test)
-
-
-#shap index for XGBoost
-explainer = shap.TreeExplainer(xg_model)
-shap_values = explainer.shap_values(X_test)
-#print(shap_values.shape)
-
-shap.summary_plot(shap_values, X_test, plot_type = 'bar')
-shap.summary_plot(shap_values, X_test)
-
-
-
+time_rf= time.time()-t0
+                            
 fpr_enrf, tpr_enrf, threshold = metrics.roc_curve(y_test,y_pred_enrf)
 roc_auc_enrf = metrics.auc(fpr_enrf, tpr_enrf)
-
+                         
+# Best XGBoost
+t0 = time.time()                             
+xg_clf = xgb.XGBClassifier(n_estimators=92, random_state=42)
+xg_model=xg_clf.fit(X_train, y_train)  
+y_pred_xg = xg_clf.predict(X_test)                            
+time_xg= time.time()-t0
+                            
 fpr_xg, tpr_xg, threshold = metrics.roc_curve(y_test,y_pred_xg)
 roc_auc_xg = metrics.auc(fpr_xg, tpr_xg)
 
@@ -554,3 +551,26 @@ plt.ylim([0, 1])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
+                            
+# Importance and Shap
+#shap index for random forest
+explainer = shap.TreeExplainer(model_rf)
+shap_values = explainer.shap_values(X_test)
+#print(shap_values)
+
+shap.summary_plot(shap_values, X_test, plot_type = 'bar')
+shap.summary_plot(shap_values, X_test)   
+                            
+# importance for XGBoost
+xgb.plot_importance(xg_model)
+plt.show()
+
+#shap index for XGBoost
+explainer = shap.TreeExplainer(xg_model)
+shap_values = explainer.shap_values(X_test)
+#print(shap_values.shape)
+
+shap.summary_plot(shap_values, X_test, plot_type = 'bar')
+shap.summary_plot(shap_values, X_test)                            
+                            
+                            
