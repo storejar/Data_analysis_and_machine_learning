@@ -318,68 +318,46 @@ plt.show()
 # Support Vector Machine
 print("\n MODEL BUILDING")
 
-t0= time.time()
 print("\n Building Support Vector Machine")
 from sklearn.svm import SVC
-# =============================================================================
-# svc = SVC()
-# model = svc.fit(X_train,y_train)
-# y_pred_svc = model.predict(X_test)
-# print("\n Done")
-# print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-# print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-# print (time.time()-t0,"seconds process time")
-# 
-# for c in (0.001,0.01,0.1,1,10,100):
-#     svc = SVC(C=c)
-#     model = svc.fit(X_train,y_train)
-#     y_pred_svc = model.predict(X_test)
-#     print("\n C:",c)
-#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-# 
-# for ker in ('linear', 'rbf', 'poly'):
-#     svc = SVC(kernel=ker)
-#     model = svc.fit(X_train,y_train)
-#     y_pred_svc = model.predict(X_test)
-#     print("\n Kernel:",ker)
-#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-# 
-# for g in (0.01,0.1,1,10):
-#     svc = SVC(gamma=g)
-#     model = svc.fit(X_train,y_train)
-#     y_pred_svc = model.predict(X_test)
-#     print("\n gamma:",g)
-#     print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-#     print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-#     
-# =============================================================================
+
+for ker in ('linear', 'rbf', 'poly'):
+    svc = SVC(kernel=ker)
+    model = svc.fit(X_train,y_train)
+    y_pred_svc = model.predict(X_test)
+    print("\n Kernel:",ker)
+    print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc))
+    print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+
 list_accur_svm=[]   
 list_auc_svm=[]
-list_c=[]
-for ker in ('linear', 'rbf', 'poly'):
-    for c in (0.1,1,10):
-        for g in (0.01,0.1):
-            svc = SVC(kernel=ker, C=c, gamma=g, random_state=42)
-            model = svc.fit(X_train,y_train)
-            y_pred_svc = model.predict(X_test)
-            print("\n Kernel:",ker)
-            print("\n C:",c)
-            print("\n gamma:",g)
-            print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
-            print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
-            list_accur_svm.append((accuracy_score(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,ker,c,g))
-            list_auc_svm.append(metrics.roc_auc_score(y_test,y_pred_svc)*100)
-            list_c.append(c)
+list_results=[]
+c_vals =[0.1,1,10,100]
+g_vals =[0.001,0.01,0.1]
+for c in c_vals:
+    for g in g_vals:
+        svc = SVC(kernel='rbf', C=c, gamma=g, random_state=42)
+        model = svc.fit(X_train,y_train)
+        y_pred_svc = model.predict(X_test)
+        print("\n Kernel:",'rbf')
+        print("\n C:",c)
+        print("\n gamma:",g)
+        print("\n Accuracy of SVM: ",accuracy_score(y_test,y_pred_svc))
+        print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc)*100)
+        list_accur_svm.append(accuracy_score(y_test,y_pred_svc))
+        list_auc_svm.append(metrics.roc_auc_score(y_test,y_pred_svc)*100)
+        list_results.append((accuracy_score(y_test,y_pred_svc),metrics.roc_auc_score(y_test,y_pred_svc)*100,'rbf',c,g)
             
-print(max(list_accur_svm))
-print(max(list_auc_svm))
+print(max(list_results))
 
 #the best parameter combination is c=10, gamma=0.1 and kernel=rbf, based on AUC (accuracy is one of the highest anyway)
+t0= time.time()                           
 svc = SVC(kernel='rbf', C=10, gamma=0.1, random_state=42)
 model = svc.fit(X_train,y_train)
 y_pred_svc_best = model.predict(X_test)
+print("\n Accuracy of SVM: ",accuracy(y_test,y_pred_svc_best))
+print("\n AUC of SVM: ",metrics.roc_auc_score(y_test,y_pred_svc_best)*100)                           
+print (time.time()-t0,"seconds process time")
 
 # =============================================================================
 # print("\n Building Support Vector Machine")
