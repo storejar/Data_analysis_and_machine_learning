@@ -193,9 +193,16 @@ print("\n Accuracy of Logistic Regression: ",accuracy_score(y_test,y_pred_lr))
 print("\n AUC of Logistec Regression: ",metrics.roc_auc_score(y_test,y_pred_lr)*100)
 
 # confusion matrix
-skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True)
-plt.ylim([-0.5, 1.5])
+plt.rc('font', size=13)
+h=skplt.metrics.plot_confusion_matrix(y_test, y_pred_lr, normalize=True, title='Logistic regression confusion matrix')
+print(h.yaxis_inverted())
+fig=h.get_figure()
+#plt.ylim([-0.5, 1.5])
+plt.ylim([1.5, -0.5])
 plt.show()
+fig.savefig('CM_LR.png')
+plt.close()
+plt.rcdefaults()
 
 # Logistic Regression after PCA
 print("\n Building Logistic Regression")
