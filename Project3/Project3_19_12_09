@@ -444,8 +444,10 @@ for rate in l_rate:
 print(max(list_accur_xg))
 print(max(list_auc_xg))
 
-edges_rate = calc_edges(l_rate)
-edges_trees = calc_edges(n_trees)
+#use hardcoded edges because calc_edges function operates only with equidistant values which are powers of 10
+edges_rate=[3.e-05, 3.e-04, 3.e-03, 3.e-02, 2.e-01, 8.e-01, 3.e+00]
+edges_trees=[7,20,60,150,300,750,1500]
+
 
 plt.rc('font', size=20)
 fig1=plt.figure(figsize=(12,9))
@@ -455,12 +457,12 @@ ax1.set_aspect("equal")
 hist, xbins, ybins, im = ax1.hist2d(list_rate, list_trees, weights=list_accur_xg, bins=(edges_rate,edges_trees))
 scale_hist=3 #position of numbers in histogram fields
 for i in range(len(ybins)-1):
-    for j in range(len(xbins)-1):
-        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],3), 
+    for j in range(len(xbins)-2):
+        ax1.text(scale_hist*xbins[j],scale_hist/2.3*ybins[i], round(hist[j,i],3), 
                 color="w", ha="center", va="center", fontweight="bold", fontsize=25)
 plt.colorbar(h1[3])
-plt.xlabel(r'Learning rate',fontsize=20)
-plt.ylabel(r'Trees',fontsize=20)
+plt.xlabel(r'$\eta$',fontsize=20)
+plt.ylabel(r'# trees',fontsize=20)
 plt.title(r'XGB accuracy',fontsize=20)
 plt.xscale('log')
 plt.yscale('log')
@@ -476,16 +478,16 @@ ax1.set_aspect("equal")
 hist, xbins, ybins, im = ax1.hist2d(list_rate, list_trees, weights=list_auc_xg, bins=(edges_rate,edges_trees))
 scale_hist=3 #position of numbers in histogram fields
 for i in range(len(ybins)-1):
-    for j in range(len(xbins)-1):
-        ax1.text(scale_hist*xbins[j],scale_hist*ybins[i], round(hist[j,i],3), 
+    for j in range(len(xbins)-2):
+        ax1.text(scale_hist*xbins[j],scale_hist/2.3*ybins[i], round(hist[j,i],2), 
                 color="w", ha="center", va="center", fontweight="bold", fontsize=25)
 plt.colorbar(h1[3])
-plt.xlabel(r'Learning rate',fontsize=20)
-plt.ylabel(r'Trees',fontsize=20)
+plt.xlabel(r'$\eta$',fontsize=20)
+plt.ylabel(r'# trees',fontsize=20)
 plt.title(r'XGB AUC',fontsize=20)
 plt.xscale('log')
 plt.yscale('log')
-fig1.savefig('XGB_accuracy.png')
+fig1.savefig('XGB_AUC.png')
 plt.show()
 plt.close()   
 
