@@ -673,10 +673,19 @@ plt.close()
                             
 # importance for XGBoost
 h=xgb.plot_importance(xg_model)
+plt.title('Feature importance, weight',fontsize=15)
 fig=h.get_figure()
 plt.show()
 fig.savefig('XGB_feature_importance.png', bbox_inches='tight')
 plt.close()
+
+xgb.plot_importance(xg_model,importance_type="gain")
+plt.title('Feature importance, gain',fontsize=15)
+plt.show()
+
+xgb.plot_importance(xg_model,importance_type="cover")
+plt.title('Feature importance, cover',fontsize=15)
+plt.show()
 
 #shap index for XGBoost
 explainer = shap.TreeExplainer(xg_model)
